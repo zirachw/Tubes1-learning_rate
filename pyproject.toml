@@ -1,0 +1,9 @@
+[project]
+name = "tubes1-learning-rate"
+version = "0.1.0"
+description = "1st Big Project for IF3170 Artificial Intelligence Course 2024/2025"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.3.3",
+]
