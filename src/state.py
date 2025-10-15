@@ -119,22 +119,9 @@ class State:
 
         self._place_meeting(meeting1, room2, day2, hour2)
         self._place_meeting(meeting2, room1, day1, hour1)
-
-    def _is_slot_available(self, room_code: str, day: int, start_hour: int, duration: int) -> bool:
-
-        for hour in range(start_hour, start_hour + duration):
-            if hour > self.MAX_HOUR:
-                return False
-            if len(self.schedule[room_code][day][hour]) > 0:
-                return False
-            
-        return True
     
     def move_meeting_to_empty_slot(self, meeting: CourseMeeting,
                                     target_room_code: str, target_day: int, target_hour: int) -> bool:
-
-        if not self._is_slot_available(target_room_code, target_day, target_hour, meeting.duration):
-            return False
 
         self._remove_meeting(meeting)
         self._place_meeting(meeting, target_room_code, target_day, target_hour)
