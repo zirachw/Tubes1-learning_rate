@@ -1,0 +1,66 @@
+from src.parse import Parse
+from src.state import State
+
+print("=" * 80)
+print("OBJECTIVE FUNCTION TESTS")
+print("=" * 80)
+print()
+
+file_path = "./input/input.json"
+parser = Parse(file_path)
+data = parser.loadJson()
+courses, rooms, students = parser.parseAll(data)
+
+print("Testing each objective function with random initial state...\n")
+
+print("-" * 80)
+print("1. STUDENT CONFLICTS OBJECTIVE")
+print("-" * 80)
+state1 = State(courses, rooms, students, objective='student_conflicts')
+state1.initialize_random()
+penalty1 = state1.calculate_objective()
+print(f"Objective: {state1.objective}")
+print(f"Penalty: {penalty1}")
+print(f"Interpretation: Total hours of time conflicts across all students")
+print()
+
+print("-" * 80)
+print("2. ROOM CONFLICTS OBJECTIVE")
+print("-" * 80)
+state2 = State(courses, rooms, students, objective='room_conflicts')
+state2.initialize_random()
+penalty2 = state2.calculate_objective()
+print(f"Objective: {state2.objective}")
+print(f"Penalty: {penalty2}")
+print(f"Interpretation: Weighted penalty for room double-booking (by student priority)")
+print()
+
+print("-" * 80)
+print("3. CAPACITY OVERFLOW OBJECTIVE")
+print("-" * 80)
+state3 = State(courses, rooms, students, objective='capacity_overflow')
+state3.initialize_random()
+penalty3 = state3.calculate_objective()
+print(f"Objective: {state3.objective}")
+print(f"Penalty: {penalty3}")
+print(f"Interpretation: Total overflow hours (students beyond room capacity)")
+print()
+
+print("=" * 80)
+print("SAMPLE SCHEDULE (using student_conflicts objective)")
+print("=" * 80)
+state1.visualize()
+
+print("=" * 80)
+print("TESTING OBJECTIVE CACHING")
+print("=" * 80)
+print(f"First call: {state1.calculate_objective()}")
+print(f"Second call (cached): {state1.calculate_objective()}")
+print(f"Cache invalidated after modification...")
+neighbor = state1.get_random_neighbor()
+print(f"Neighbor objective: {neighbor.calculate_objective()}")
+print()
+
+print("=" * 80)
+print("TEST COMPLETED")
+print("=" * 80)
