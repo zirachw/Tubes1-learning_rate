@@ -218,7 +218,7 @@ class UIHandlers:
     
     def open_file_picker(self):
         filename, _ = QFileDialog.getOpenFileName(self.parent, "Open File",
-                                       "../../input/",
+                                       "./input/",
                                        "Text (*.json)")
         
         return filename
