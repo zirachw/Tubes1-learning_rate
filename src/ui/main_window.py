@@ -1,10 +1,8 @@
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QLabel, QLineEdit, QComboBox, QPushButton,
-    QVBoxLayout, QHBoxLayout, QGridLayout, QRadioButton, QButtonGroup, QScrollArea, QFrame,
-    QCompleter, QCheckBox, QMessageBox, QProgressBar, QGraphicsDropShadowEffect,
-    QFileDialog
+    QWidget, QLabel, QLineEdit, QComboBox, QPushButton,
+    QVBoxLayout, QMessageBox
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QThreadPool, QRunnable, QObject, QTimer
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIntValidator, QIcon
 
 from .ui_handlers import UIHandlers
@@ -91,37 +89,50 @@ class MainWindow(QWidget):
             margin-bottom: 6px;
         """)
         self.algorithm_combo_box = QComboBox()
-        algorithm_list = ["Steepest Ascent Hill Climb", "Sideways Hill Climb", "Stochastic Hill Climb", "Simulated Annealing", "Genetic Algorithm"]
+        algorithm_list = ["Steepest Ascent Hill Climb", "Sideways Hill Climb", "Stochastic Hill Climb", "Random Restart Hill Climb", "Simulated Annealing", "Genetic Algorithm"]
         self.algorithm_combo_box.addItems(algorithm_list) 
-        # self.algorithm_combo_box.currentIndexChanged.connect()
+        self.algorithm_combo_box.currentIndexChanged.connect(self.on_algo_selection_changed)
         self.algorithm_combo_box.setStyleSheet("""
-            color: #000000
-        """)
-
-        self.keyword_input = QLineEdit()
-        self.keyword_input.setPlaceholderText("React, Express, HTML")
-        self.keyword_input.setStyleSheet("""
-            QLineEdit {
-                padding: 10px 20px;
-                font-size: 14px;
+            QComboBox {
+                color: #000000;
+                background-color: #ffffff;
                 border: 2px solid #e5e7eb;
-                border-radius: 20px;
-                background-color: #ffffff;
-                color: #374151;
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+                min-height: 20px;
             }
-            QLineEdit:focus {
+            QComboBox:hover {
                 border-color: #3b82f6;
-                background-color: #ffffff;
+            }
+            QComboBox:focus {
+                border-color: #2563eb;
                 outline: none;
             }
-            QLineEdit:hover {
-                border-color: #93c5fd;
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid #6b7280;
+                margin-right: 8px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #ffffff;
+                color: #000000;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 4px;
+                selection-background-color: #3b82f6;
+                selection-color: #ffffff;
             }
         """)
-        
+
         algorithm_layout.addWidget(algorithm_label)
         algorithm_layout.addWidget(self.algorithm_combo_box)
-        algorithm_layout.addWidget(self.keyword_input)
         main_layout.addLayout(algorithm_layout)
         algo_label = QLabel("Search Algorithm:")
         algo_label.setStyleSheet("""
@@ -130,11 +141,17 @@ class MainWindow(QWidget):
             color: #1e40af;
             margin: 10px 0 5px 0;
         """)
+        self.params_layout = QVBoxLayout()
+        self.algorithm_params()
+        self.params_layout.addWidget(self.stochastic_params)
+        self.params_layout.addWidget(self.sideways_hill_climb_params)
+        self.params_layout.addWidget(self.random_restart_hill_climb_params)
+        self.params_layout.addWidget(self.simulated_annealing_params)
+        self.params_layout.addWidget(self.genetic_algorithm_params)
         
-        algo_layout = QHBoxLayout()
-        
-        
-        main_layout.addLayout(algo_layout)
+        algorithm_layout.addLayout(self.params_layout)
+
+        main_layout.addLayout(algorithm_layout)
         self.search_btn = QPushButton("Search")
         self.search_btn.setStyleSheet("""
             QPushButton {
@@ -163,12 +180,152 @@ class MainWindow(QWidget):
         
         self.setLayout(main_layout)
 
+
+    def algorithm_params(self):
+        input_style = """
+            QLineEdit{
+            color: #000000;
+            padding: 8px 12px;
+            font-size: 13px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #ffffff;
+            }
+            QLineEdit:hover {
+                border-color: #3b82f6;
+            }
+            QLineEdit:focus {
+                border-color: #2563eb;
+                outline: none;
+            }
+        """
+        
+        label_style = "font-size: 13px; color: #000000;"
+        
+        # Common Paramater
+        self.max_iteration_input = QLineEdit()
+        self.max_iteration_input.setPlaceholderText("Enter number (e.g., 5)")
+        self.max_iteration_input.setText("6")
+        max_iteration_validator = QIntValidator(1, 10000, self)
+        self.max_iteration_input.setValidator(max_iteration_validator)
+        self.max_iteration_input.setStyleSheet(input_style)
+
+        # Stochastic Hill Climbing
+        self.stochastic_params = QWidget()
+        stochastic_layout = QVBoxLayout()
+        stochastic_label = QLabel("Max Iteration:")
+        stochastic_label.setStyleSheet(label_style)
+        stochastic_layout.addWidget(stochastic_label)
+        stochastic_layout.addWidget(self.max_iteration_input)
+        self.stochastic_params.setLayout(stochastic_layout)
+        self.stochastic_params.hide()
+
+        # Sideways Hill Climbing
+        self.sideways_hill_climb_params = QWidget()
+        sideways_hill_climb_layout = QVBoxLayout()
+        sideways_hill_climb_label = QLabel("Max Sideways Moves:")
+        sideways_hill_climb_label.setStyleSheet(label_style)
+        self.max_sideways_input = QLineEdit()
+        self.max_sideways_input.setPlaceholderText("Enter number (e.g., 5)")
+        self.max_sideways_input.setText("6")
+        max_sideways_validator = QIntValidator(1, 100, self)
+        self.max_sideways_input.setValidator(max_sideways_validator)
+        self.max_sideways_input.setStyleSheet(input_style)
+        sideways_hill_climb_layout.addWidget(sideways_hill_climb_label)
+        sideways_hill_climb_layout.addWidget(self.max_sideways_input)
+        self.sideways_hill_climb_params.setLayout(sideways_hill_climb_layout)
+        self.sideways_hill_climb_params.hide()
+
+
+        # Random Restart Hill Climbing
+        self.random_restart_hill_climb_params = QWidget()
+        random_restart_hill_climb_layout = QVBoxLayout()
+        random_restart_hill_climb_label = QLabel("Max Restarts:")
+        random_restart_hill_climb_label.setStyleSheet(label_style)
+        self.max_restart_input = QLineEdit()
+        self.max_restart_input.setPlaceholderText("Enter number (e.g., 5)")
+        self.max_restart_input.setText("6")
+        max_restart_validator = QIntValidator(1, 100, self)
+        self.max_restart_input.setValidator(max_restart_validator)
+        self.max_restart_input.setStyleSheet(input_style)
+        random_restart_hill_climb_layout.addWidget(random_restart_hill_climb_label)
+        random_restart_hill_climb_layout.addWidget(self.max_restart_input)
+        self.random_restart_hill_climb_params.setLayout(random_restart_hill_climb_layout)
+        self.random_restart_hill_climb_params.hide()
+
+
+        # Simulated Annealing
+        self.simulated_annealing_params = QWidget()
+        simulated_annealing_layout = QVBoxLayout()
+        
+        initial_temp_label = QLabel("Initial Temperature:")
+        initial_temp_label.setStyleSheet(label_style)
+        self.initial_temp_input = QLineEdit()
+        self.initial_temp_input.setPlaceholderText("Enter number (e.g., 1000)")
+        self.initial_temp_input.setText("1000")
+        initial_temp_validator = QIntValidator(1, 100000, self)
+        self.initial_temp_input.setValidator(initial_temp_validator)
+        self.initial_temp_input.setStyleSheet(input_style)
+        
+        cooling_rate_label = QLabel("Cooling Rate:")
+        cooling_rate_label.setStyleSheet(label_style)
+        self.cooling_rate_input = QLineEdit()
+        self.cooling_rate_input.setPlaceholderText("Enter number (e.g., 0.95)")
+        self.cooling_rate_input.setText("0.95")
+        self.cooling_rate_input.setStyleSheet(input_style)
+        
+        sa_max_iter_label = QLabel("Max Iterations:")
+        sa_max_iter_label.setStyleSheet(label_style)
+        self.sa_max_iteration_input = QLineEdit()
+        self.sa_max_iteration_input.setPlaceholderText("Enter number (e.g., 150)")
+        self.sa_max_iteration_input.setText("150")
+        sa_max_iter_validator = QIntValidator(1, 10000, self)
+        self.sa_max_iteration_input.setValidator(sa_max_iter_validator)
+        self.sa_max_iteration_input.setStyleSheet(input_style)
+        
+        simulated_annealing_layout.addWidget(initial_temp_label)
+        simulated_annealing_layout.addWidget(self.initial_temp_input)
+        simulated_annealing_layout.addWidget(cooling_rate_label)
+        simulated_annealing_layout.addWidget(self.cooling_rate_input)
+        simulated_annealing_layout.addWidget(sa_max_iter_label)
+        simulated_annealing_layout.addWidget(self.sa_max_iteration_input)
+        self.simulated_annealing_params.setLayout(simulated_annealing_layout)
+        self.simulated_annealing_params.hide()
+
+        # Genetic Algorithm
+        self.genetic_algorithm_params = QWidget()
+        genetic_algorithm_layout = QVBoxLayout()
+        
+        pop_size_label = QLabel("Population Size:")
+        pop_size_label.setStyleSheet(label_style)
+        self.population_size_input = QLineEdit()
+        self.population_size_input.setPlaceholderText("Enter number (e.g., 8)")
+        self.population_size_input.setText("8")
+        population_size_validator = QIntValidator(2, 100, self)
+        self.population_size_input.setValidator(population_size_validator)
+        self.population_size_input.setStyleSheet(input_style)
+        
+        ga_max_iter_label = QLabel("Max Iterations:")
+        ga_max_iter_label.setStyleSheet(label_style)
+        self.ga_max_iteration_input = QLineEdit()
+        self.ga_max_iteration_input.setPlaceholderText("Enter number (e.g., 150)")
+        self.ga_max_iteration_input.setText("150")
+        ga_max_iter_validator = QIntValidator(1, 10000, self)
+        self.ga_max_iteration_input.setValidator(ga_max_iter_validator)
+        self.ga_max_iteration_input.setStyleSheet(input_style)
+        
+        genetic_algorithm_layout.addWidget(pop_size_label)
+        genetic_algorithm_layout.addWidget(self.population_size_input)
+        genetic_algorithm_layout.addWidget(ga_max_iter_label)
+        genetic_algorithm_layout.addWidget(self.ga_max_iteration_input)
+        self.genetic_algorithm_params.setLayout(genetic_algorithm_layout)
+        self.genetic_algorithm_params.hide()
+
     def start_search_ui(self):
         self.search_btn.setEnabled(False)
         self.search_btn.setText("🔍 Searching...")
         self.progress_bar.setVisible(True)
         self.cancel_btn.setVisible(True)
-        self.keyword_input.setEnabled(False)
         self.match_input.setEnabled(False)
     
     def end_search_ui(self):
@@ -176,7 +333,6 @@ class MainWindow(QWidget):
         self.search_btn.setText("🔍 Search CVs")
         self.progress_bar.setVisible(False)
         self.cancel_btn.setVisible(False)
-        self.keyword_input.setEnabled(True)
 
     def on_search_completed(self, cv_results):
         try:
@@ -186,7 +342,6 @@ class MainWindow(QWidget):
             if cv_results:
                 print(f"Top result: {cv_results[0]['name']} with {cv_results[0]['total_matches']} matches")
             else:
-                print("No CVs found with matching keywords")
                 self.ui_handlers.clear_results_container()
                 
         except Exception as e:
@@ -241,4 +396,20 @@ class MainWindow(QWidget):
     
     def on_algo_selection_changed(self):
         selected_text = self.algorithm_combo_box.currentText()
-        self.algorithm_label.setText(f"Selected Algorithm: {selected_text}")
+
+        self.stochastic_params.hide()
+        self.sideways_hill_climb_params.hide()
+        self.random_restart_hill_climb_params.hide()
+        self.simulated_annealing_params.hide()
+        self.genetic_algorithm_params.hide()
+
+        if selected_text == "Stochastic Hill Climb":
+            self.stochastic_params.show()
+        elif selected_text == "Random Restart Hill Climb":
+            self.random_restart_hill_climb_params.show()
+        elif selected_text == "Sideways Hill Climb":
+            self.sideways_hill_climb_params.show()
+        elif selected_text == "Simulated Annealing":
+            self.simulated_annealing_params.show()
+        elif selected_text == "Genetic Algorithm":
+            self.genetic_algorithm_params.show()
