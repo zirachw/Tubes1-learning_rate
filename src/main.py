@@ -1,17 +1,12 @@
-from parse import Parse
-
+from PyQt6.QtWidgets import QApplication
+from .ui.main_window import MainWindow
+import sys, os 
 
 def main():
-    filePath = "./input/input.json"
-    parse = Parse(filePath)
-    data = parse.loadJson()
-    courses, rooms, students = parse.parseAll(data)
-
-    # Test Print
-    print(courses[0].code)
-    print(rooms[0].code)
-    print(students[0].NIM)
-    
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main() 
