@@ -10,13 +10,11 @@ class State:
     MIN_HOUR = 7
     MAX_HOUR = 18  # last start time = 17, end time = 18
 
-    def __init__(self, courses: List[Course], rooms: List[Room], students: List[Student],
-                 objective: str = 'student_conflicts'):
+    def __init__(self, courses: List[Course], rooms: List[Room], students: List[Student]):
 
         self.courses = courses
         self.rooms = rooms
         self.students = students
-        self.objective = objective
 
         # Main state: list of all course meetings (Course, Time, Room)
         self.course_meetings: List[CourseMeeting] = []
@@ -202,55 +200,55 @@ class State:
         if self._cached_objective is not None:
             return self._cached_objective
 
-        penalty = 0.0
+        student_conflicts_penalty = 0
+        for student in self.students:
+            student_meetings = [m for m in self.course_meetings
+                               if m.course.code in student.courses]
 
-        if self.objective == 'student_conflicts':
-            for student in self.students:
-                student_meetings = [m for m in self.course_meetings
-                                   if m.course.code in student.courses]
+            for i in range(len(student_meetings)):
+                for j in range(i + 1, len(student_meetings)):
+                    m1, m2 = student_meetings[i], student_meetings[j]
 
-                for i in range(len(student_meetings)):
-                    for j in range(i + 1, len(student_meetings)):
-                        m1, m2 = student_meetings[i], student_meetings[j]
+                    if m1.time.start[0] == m2.time.start[0]:
+                        start1, end1 = m1.time.start[1], m1.time.end[1]
+                        start2, end2 = m2.time.start[1], m2.time.end[1]
 
-                        if m1.time.start[0] == m2.time.start[0]:
-                            start1, end1 = m1.time.start[1], m1.time.end[1]
-                            start2, end2 = m2.time.start[1], m2.time.end[1]
+                        overlap_start = max(start1, start2)
+                        overlap_end = min(end1, end2)
 
-                            overlap_start = max(start1, start2)
-                            overlap_end = min(end1, end2)
+                        if overlap_start < overlap_end:
+                            student_conflicts_penalty += (overlap_end - overlap_start)
 
-                            if overlap_start < overlap_end:
-                                penalty += (overlap_end - overlap_start)
+        room_conflicts_penalty = 0
+        priority_weights = {1: 1.75, 2: 1.5, 3: 1.25}
 
-        elif self.objective == 'room_conflicts':
-            priority_weights = {1: 1.75, 2: 1.5, 3: 1.25}
+        for room_code in self.schedule:
+            for day in self.schedule[room_code]:
+                for hour in self.schedule[room_code][day]:
+                    courses_at_slot = self.schedule[room_code][day][hour]
 
-            for room_code in self.schedule:
-                for day in self.schedule[room_code]:
-                    for hour in self.schedule[room_code][day]:
-                        courses_at_slot = self.schedule[room_code][day][hour]
+                    if len(courses_at_slot) > 1:
+                        for student in self.students:
+                            student_penalty = 0
+                            for course in courses_at_slot:
+                                if course.code in student.courses:
+                                    idx = student.courses.index(course.code)
+                                    priority = idx + 1
+                                    weight = priority_weights.get(priority, 1)
+                                    student_penalty += weight
 
-                        if len(courses_at_slot) > 1:
-                            for student in self.students:
-                                student_penalty = 0
-                                for course in courses_at_slot:
-                                    if course.code in student.courses:
-                                        idx = student.courses.index(course.code)
-                                        priority = idx + 1
-                                        weight = priority_weights.get(priority, 1.0)
-                                        student_penalty += weight
+                            room_conflicts_penalty += student_penalty
 
-                                penalty += student_penalty
+        capacity_overflow_penalty = 0
+        for meeting in self.course_meetings:
+            if meeting.course.studentCount > meeting.room.capacity:
+                overflow = meeting.course.studentCount - meeting.room.capacity
+                capacity_overflow_penalty += overflow * meeting.duration
 
-        elif self.objective == 'capacity_overflow':
-            for meeting in self.course_meetings:
-                if meeting.course.studentCount > meeting.room.capacity:
-                    overflow = meeting.course.studentCount - meeting.room.capacity
-                    penalty += overflow * meeting.duration
+        penalty = student_conflicts_penalty + room_conflicts_penalty + capacity_overflow_penalty
 
         self._cached_objective = penalty
-        
+
         return penalty
 
     def copy(self) -> 'State':
