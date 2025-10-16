@@ -76,15 +76,21 @@ class MainWindow(QWidget):
         left_panel.addWidget(filepicker_button)
         left_panel.addWidget(self.filepicker_label)
         
-        keyword_layout = QVBoxLayout()
+        algorithm_layout = QVBoxLayout()
         
-        keyword_label = QLabel("Keywords :")
-        keyword_label.setStyleSheet("""
+        algorithm_label = QLabel("Algorithm :")
+        algorithm_label.setStyleSheet("""
             font-size: 15px;
             font-weight: 600;
             color: #1e40af;
             margin-bottom: 6px;
         """)
+        self.algorithm_combo_box = QComboBox()
+        algorithm_list = ["Steepest Ascent Hill Climb", "Sideways Hill Climb", "Stochastic Hill Climb", "Simulated Annealing", "Genetic Algorithm"]
+        self.algorithm_combo_box.addItems(algorithm_list) 
+        # self.algorithm_combo_box.currentIndexChanged.connect()
+        left_panel.addWidget(self.algorithm_combo_box)
+        
         self.keyword_input = QLineEdit()
         self.keyword_input.setPlaceholderText("React, Express, HTML")
         self.keyword_input.setStyleSheet("""
@@ -106,9 +112,9 @@ class MainWindow(QWidget):
             }
         """)
         
-        keyword_layout.addWidget(keyword_label)
-        keyword_layout.addWidget(self.keyword_input)
-        left_panel.addLayout(keyword_layout)
+        algorithm_layout.addWidget(algorithm_label)
+        algorithm_layout.addWidget(self.keyword_input)
+        left_panel.addLayout(algorithm_layout)
         algo_label = QLabel("Search Algorithm:")
         algo_label.setStyleSheet("""
             font-size: 15px;
@@ -118,6 +124,7 @@ class MainWindow(QWidget):
         """)
         
         algo_layout = QHBoxLayout()
+        
         self.kmp_radio = QRadioButton("KMP")
         self.bm_radio = QRadioButton("BM")
         self.ao_radio = QRadioButton("AO")
@@ -612,3 +619,7 @@ class MainWindow(QWidget):
             self.filepicker_label.setText(f"Selected File: {filename}")
         else:
             self.filepicker_label.setText(f"No Selected File")
+    
+    def on_algo_selection_changed(self):
+        selected_text = self.algorithm_combo_box.currentText()
+        self.algorithm_label.setText(f"Selected Algorithm: {selected_text}")
