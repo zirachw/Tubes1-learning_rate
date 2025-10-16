@@ -1,17 +1,36 @@
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QComboBox, QPushButton,
-    QVBoxLayout, QMessageBox
+    QVBoxLayout, QMessageBox, QHBoxLayout
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QIntValidator, QIcon
 
 from .ui_handlers import UIHandlers
+
+
+class AlgorithmWorker(QThread):
+    finished = pyqtSignal(object, object)  # (algo, result)
+    error = pyqtSignal(str)
+    
+    def __init__(self, algo):
+        super().__init__()
+        self.algo = algo
+    
+    def run(self):
+        try:
+            result = self.algo.search()
+            self.finished.emit(self.algo, result)
+        except Exception as e:
+            import traceback
+            error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
+            self.error.emit(error_msg)
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         
         self.ui_handlers = UIHandlers(self)
+        self.worker = None  # Store reference to worker thread
         
         self.init_ui()
         
@@ -20,7 +39,6 @@ class MainWindow(QWidget):
         self.resize(1200, 800)
         self.setMinimumSize(800, 400)
         self.resize(1200, 800)
-        self.setWindowIcon(QIcon("assets/logo-white.svg"))
 
     def init_ui(self):
         self.setStyleSheet("""
@@ -44,8 +62,11 @@ class MainWindow(QWidget):
             letter-spacing: -0.5px;
         """)
         main_layout.addWidget(title)
+
+        input_layout = QHBoxLayout()
         filepicker_button = QPushButton("Select Input File")
         filepicker_button.clicked.connect(self.open_file_picker)
+        filepicker_button.setMaximumWidth(200)  
         filepicker_button.setStyleSheet("""
             QPushButton {
                 background-color: #6b7280;
@@ -54,9 +75,9 @@ class MainWindow(QWidget):
                 border-left: none;
                 border-right: none;
                 border-radius: 10px;
-                font-size: 16px;
+                font-size: 14px;
                 font-weight: bold;
-                margin: 0px;
+                margin: 4px;
             }
             QPushButton:hover {
                 background-color: #4b5563;
@@ -76,9 +97,11 @@ class MainWindow(QWidget):
             color: #000000
         """)
 
-        main_layout.addWidget(filepicker_button)
-        main_layout.addWidget(self.filepicker_label)
-        
+
+        input_layout.addWidget(filepicker_button)
+        input_layout.addWidget(self.filepicker_label)
+        main_layout.addLayout(input_layout)
+
         algorithm_layout = QVBoxLayout()
         
         algorithm_label = QLabel("Algorithm :")
@@ -153,6 +176,7 @@ class MainWindow(QWidget):
 
         main_layout.addLayout(algorithm_layout)
         self.search_btn = QPushButton("Search")
+        self.search_btn.clicked.connect(self.run_algorithm)
         self.search_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #3b82f6, stop:1 #5b95f5);
@@ -390,9 +414,32 @@ class MainWindow(QWidget):
     def open_file_picker(self):
         filename = self.ui_handlers.open_file_picker()
         if filename:
-            self.filepicker_label.setText(f"Selected File: {filename}")
+            self.filepicker_label.setText(filename)
         else:
             self.filepicker_label.setText(f"No Selected File")
+    
+    def get_message_box_style(self):
+        return """
+            QMessageBox {
+                background-color: #ffffff;
+            }
+            QLabel {
+                color: #000000;
+                font-size: 13px;
+            }
+            QPushButton {
+                background-color: #3b82f6;
+                color: white;
+                border: none;
+                padding: 6px 16px;
+                border-radius: 4px;
+                font-size: 13px;
+                min-width: 70px;
+            }
+            QPushButton:hover {
+                background-color: #2563eb;
+            }
+        """
     
     def on_algo_selection_changed(self):
         selected_text = self.algorithm_combo_box.currentText()
@@ -413,3 +460,123 @@ class MainWindow(QWidget):
             self.simulated_annealing_params.show()
         elif selected_text == "Genetic Algorithm":
             self.genetic_algorithm_params.show()
+
+    def run_algorithm(self):
+        try:
+            from src.utils.parse import Parse
+            from src.core.state import State
+            from src.algorithm.steepest_hill_climbing import SteepestHillClimbing
+            from src.algorithm.stochastic_hill_climbing import StochasticHillClimbing
+            from src.algorithm.sideways_hill_climbing import SidewaysHillClimbing
+            from src.algorithm.random_restart_hill_climbing import RandomRestartHillClimbing
+            from src.algorithm.simulated_annealing import SimulatedAnnealing
+            from src.algorithm.genetic_algorithm import GeneticAlgorithm
+            
+            filename = self.filepicker_label.text()
+            if filename == "No Selected File":
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setWindowTitle("No File Selected")
+                msg.setText("Please select an input file first.")
+                msg.setStyleSheet(self.get_message_box_style())
+                msg.exec()
+                return
+            filename = filename.replace("Selected File: ", "")
+            
+            parser = Parse(filename)
+            data = parser.loadJson()
+            courses, rooms, students = parser.parseAll(data)
+            
+            state = State(courses, rooms, students)
+            state.initial_state()
+            state.visualize()
+            
+            selected_algo = self.algorithm_combo_box.currentText()
+            
+            if selected_algo == "Steepest Ascent Hill Climb":
+                algo = SteepestHillClimbing(state)
+            
+            elif selected_algo == "Stochastic Hill Climb":
+                max_iter = int(self.max_iteration_input.text())
+                algo = StochasticHillClimbing(state, max_iteration=max_iter)
+            
+            elif selected_algo == "Sideways Hill Climb":
+                max_sideways = int(self.max_sideways_input.text())
+                algo = SidewaysHillClimbing(state, max_sideways=max_sideways)
+            
+            elif selected_algo == "Random Restart Hill Climb":
+                max_restart = int(self.max_restart_input.text())
+                algo = RandomRestartHillClimbing(state, max_restart=max_restart)
+            
+            elif selected_algo == "Simulated Annealing":
+                initial_temp = int(self.initial_temp_input.text())
+                cooling_rate = float(self.cooling_rate_input.text())
+                max_iter = int(self.sa_max_iteration_input.text())
+                algo = SimulatedAnnealing(state, initial_temp=initial_temp, 
+                                         cooling_rate=cooling_rate, 
+                                         max_iteration=max_iter)
+            
+            elif selected_algo == "Genetic Algorithm":
+                pop_size = int(self.population_size_input.text())
+                max_iter = int(self.ga_max_iteration_input.text())
+                algo = GeneticAlgorithm(state, population_size=pop_size, 
+                                       max_iteration=max_iter)
+            
+            self.search_btn.setEnabled(False)
+            self.search_btn.setText("Running...")
+            self.algorithm_combo_box.setEnabled(False)
+            
+            self.worker = AlgorithmWorker(algo)
+            self.worker.finished.connect(self.on_algorithm_finished)
+            self.worker.error.connect(self.on_algorithm_error)
+            self.worker.start()
+            
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Critical)
+            msg.setWindowTitle("Error")
+            msg.setText(f"An error occurred:\n{str(e)}")
+            msg.setStyleSheet(self.get_message_box_style())
+            msg.exec()
+            import traceback
+            traceback.print_exc()
+    
+    def on_algorithm_finished(self, algo, result):
+        try:
+            result.visualize()
+            algo.print_summary()
+            algo.plot()
+            
+            selected_algo = self.algorithm_combo_box.currentText()
+            
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setWindowTitle("Success")
+            msg.setText(f"{selected_algo} completed successfully!\n Check the console for results and output folder for plots.")
+            msg.setStyleSheet(self.get_message_box_style())
+            msg.exec()
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Critical)
+            msg.setWindowTitle("Error")
+            msg.setText(f"Error processing results: {str(e)}")
+            msg.setStyleSheet(self.get_message_box_style())
+            msg.exec()
+        finally:
+            self.search_btn.setEnabled(True)
+            self.search_btn.setText("Search")
+            self.algorithm_combo_box.setEnabled(True)
+            self.worker = None
+    
+    def on_algorithm_error(self, error_msg):
+        msg = QMessageBox(self)
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setWindowTitle("Algorithm Error")
+        msg.setText(f"Error occurred:{error_msg}")
+        msg.setStyleSheet(self.get_message_box_style())
+        msg.exec()
+        
+        self.search_btn.setEnabled(True)
+        self.search_btn.setText("Search")
+        self.algorithm_combo_box.setEnabled(True)
+        self.worker = None
