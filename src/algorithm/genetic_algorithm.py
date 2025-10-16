@@ -164,6 +164,11 @@ class GeneticAlgorithm(LocalSearch):
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
 
+            filename = "output/geneticalgorithm_fitness.png"
+            plt.savefig(filename)
+            print(f"Saved: {filename}")
+            plt.close()
+
     def print_summary(self):
         super().print_summary()
 

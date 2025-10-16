@@ -1,7 +1,6 @@
 from .local_search import LocalSearch
 from src.core.state import State
 import matplotlib.pyplot as plt
-import random
 import math
 
 class SimulatedAnnealing(LocalSearch):
@@ -43,7 +42,7 @@ class SimulatedAnnealing(LocalSearch):
                 probability = math.exp(-delta / temperature)
                 self.probability_values.append(probability)
 
-                if random.random() < probability:
+                if probability > 0.5:
                     self.state.execute_operation(operation)
 
             temperature *= self.cooling_rate
@@ -64,6 +63,11 @@ class SimulatedAnnealing(LocalSearch):
             plt.title('Simulated Annealing - Acceptance Probability vs Iterations', fontsize=14)
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
+
+            filename = "output/simulatedannealing_probability.png"
+            plt.savefig(filename)
+            print(f"Saved: {filename}")
+            plt.close()
 
     def print_summary(self):
         super().print_summary()

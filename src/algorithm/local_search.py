@@ -45,6 +45,12 @@ class LocalSearch(ABC):
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
 
+        # Save plot
+        filename = f"output/{self.__class__.__name__.lower()}_objective.png"
+        plt.savefig(filename)
+        print(f"Saved: {filename}")
+        plt.close()
+
     def print_summary(self):
 
         print(f"\n{'='*80}")
