@@ -34,7 +34,7 @@ print()
 print("-" * 80)
 print("CREATING STATE...")
 print("-" * 80)
-state = State(courses, rooms, students, objective='capacity_overflow')
+state = State(courses, rooms, students, objective='student_conflicts')
 print(f"[OK] Created state with {len(state.courses)} courses")
 print()
 

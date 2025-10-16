@@ -6,7 +6,6 @@ from src.algorithm.sideways_hill_climbing import SidewaysHillClimbing
 from src.algorithm.random_restart_hill_climbing import RandomRestartHillClimbing
 from src.algorithm.simulated_annealing import SimulatedAnnealing
 from src.algorithm.genetic_algorithm import GeneticAlgorithm
-import matplotlib.pyplot as plt
 
 print("=" * 80)
 print("ALGORITHM TESTING")
@@ -14,21 +13,26 @@ print("=" * 80)
 print()
 
 # Load data
-print("Loading input data...")
-parser = Parse("./input/input.json")
+file_path = "./input/input.json"
+parser = Parse(file_path)
 data = parser.loadJson()
 courses, rooms, students = parser.parseAll(data)
-print(f"[OK] Loaded {len(courses)} courses, {len(rooms)} rooms, {len(students)} students")
-print()
+
+state = State(courses, rooms, students, objective='student_conflicts')
+state.initial_state()
+penalty1 = state.calculate_objective()
+print(f"Objective: {state.objective}")
+print(f"Penalty: {penalty1}")
+print(f"Number of valid operations: {len(state.successors)}")
 
 # Test each algorithm
 algorithms = [
-    ("Steepest Hill Climbing", lambda: SteepestHillClimbing(State(courses, rooms, students, 'capacity_overflow'))),
-    ("Stochastic Hill Climbing", lambda: StochasticHillClimbing(State(courses, rooms, students, 'capacity_overflow'), max_iteration=100)),
-    ("Sideways Hill Climbing", lambda: SidewaysHillClimbing(State(courses, rooms, students, 'capacity_overflow'), max_sideways=10)),
-    ("Random Restart Hill Climbing", lambda: RandomRestartHillClimbing(State(courses, rooms, students, 'capacity_overflow'), max_restart=3)),
-    ("Simulated Annealing", lambda: SimulatedAnnealing(State(courses, rooms, students, 'capacity_overflow'), initial_temp=1000, cooling_rate=0.95, max_iteration=100)),
-    ("Genetic Algorithm", lambda: GeneticAlgorithm(State(courses, rooms, students, 'capacity_overflow'), population_size=4, max_iteration=100)),
+    # ("Steepest Hill Climbing", lambda: SteepestHillClimbing(state)),
+    ("Stochastic Hill Climbing", lambda: StochasticHillClimbing(state, max_iteration=1000)),
+    # ("Sideways Hill Climbing", lambda: SidewaysHillClimbing(state, max_sideways=10)),
+    # ("Random Restart Hill Climbing", lambda: RandomRestartHillClimbing(state, max_restart=3)),
+    ("Simulated Annealing", lambda: SimulatedAnnealing(state, initial_temp=1000, cooling_rate=0.95, max_iteration=1000)),
+    ("Genetic Algorithm", lambda: GeneticAlgorithm(state, population_size=8, max_iteration=1000)),
 ]
 
 for name, algo_factory in algorithms:
@@ -50,8 +54,6 @@ for name, algo_factory in algorithms:
         # Plot
         print(f"Generating plots...")
         algo.plot()
-        plt.savefig(f"output/{name.replace(' ', '_').lower()}_plot.png")
-        plt.close()
 
         print(f"[OK] {name} completed successfully")
         print()
