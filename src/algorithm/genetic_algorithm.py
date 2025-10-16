@@ -39,7 +39,7 @@ class GeneticAlgorithm(LocalSearch):
         return genes
 
     def _genes_to_state(self, genes: List[Tuple[Time, Room]]) -> State:
-        new_state = State(self.state.courses, self.state.rooms, self.state.students, self.state.objective)
+        new_state = State(self.state.courses, self.state.rooms, self.state.students)
 
         for gene_idx, (course_idx, _) in enumerate(self.gene_map):
             time, room = genes[gene_idx]

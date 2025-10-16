@@ -1,12 +1,7 @@
 from src.utils.parse import Parse
 from src.core.state import State
 
-print("=" * 80)
-print("STATE_V2 CLASS TEST - New Architecture")
-print("=" * 80)
-print()
-
-print("Loading input data from input/input.json...")
+print("Loading input data")
 file_path = "./input/input.json"
 parser = Parse(file_path)
 data = parser.loadJson()
@@ -18,28 +13,28 @@ print(f"[OK] Loaded {len(students)} students")
 print()
 
 print("-" * 80)
-print("COURSES:")
+print("Courses:")
 print("-" * 80)
 for course in courses:
     print(f"  {course.code}: {course.studentCount} students, {course.SKS} SKS")
 print()
 
 print("-" * 80)
-print("ROOMS:")
+print("Rooms:")
 print("-" * 80)
 for room in rooms:
     print(f"  {room.code}: capacity {room.capacity}")
 print()
 
 print("-" * 80)
-print("CREATING STATE...")
+print("State definition...")
 print("-" * 80)
-state = State(courses, rooms, students, objective='student_conflicts')
-print(f"[OK] Created state with {len(state.courses)} courses")
+state = State(courses, rooms, students)
+print(f"[OK] Created state with {len(state.courses)} courses, {len(state.rooms)} rooms, {len(state.students)} students")
 print()
 
 print("-" * 80)
-print("INITIALIZING RANDOM SCHEDULE...")
+print("State initialization...")
 print("-" * 80)
 state.initial_state()
 print(f"[OK] Created {len(state.course_meetings)} course meetings")
@@ -60,22 +55,21 @@ for code, meetings in course_meetings.items():
 print()
 
 print("-" * 80)
-print("TESTING OBJECTIVE CALCULATION...")
+print("Objective function calculation...")
 print("-" * 80)
 objective_value = state.calculate_objective()
-print(f"Objective function: {state.objective}")
-print(f"Penalty: {objective_value}")
+print(f"Objective Value: {objective_value}")
 print(f"Cached objective (2nd call): {state.calculate_objective()}")
 print()
 
 print("=" * 80)
-print("SCHEDULE VISUALIZATION")
+print("Schedule Visualization")
 print("=" * 80)
 state.visualize()
 print()
 
 print("=" * 80)
-print("TESTING SUCCESSOR OPERATIONS")
+print("Testing get_random_neighbor() and execute_operation()")
 print("=" * 80)
 
 print(f"\nOriginal state objective: {state.calculate_objective()}")
@@ -91,18 +85,18 @@ for i in range(5):
         operation = state.get_random_neighbor()
         print(f"Operation {i+1}: {operation[0]} (removed from list)")
 
-        # Execute on a copy to test
         test_state = state.copy()
         test_state.execute_operation(operation)
         print(f"  Result objective: {test_state.calculate_objective()}")
         print(f"  Remaining operations in original: {len(state.successors)}")
+        
     except ValueError as e:
         print(f"Operation {i+1}: ERROR - {e}")
 
 print()
 
 print("-" * 80)
-print("TESTING EXECUTE OPERATION")
+print("Testing state copy and operation execution")
 print("-" * 80)
 state_copy = state.copy()
 print(f"Original objective: {state_copy.calculate_objective()}")
@@ -114,9 +108,3 @@ if state_copy.successors:
     state_copy.execute_operation(operation)
     print(f"New objective: {state_copy.calculate_objective()}")
     print(f"Operations after (recomputed): {len(state_copy.successors)}")
-
-print()
-
-print("=" * 80)
-print("TEST COMPLETED")
-print("=" * 80)
