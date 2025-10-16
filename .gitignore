@@ -1,4 +1,4 @@
 /.venv
+/dump
 uv.lock
-
-/src/__pycache__
+**/*__pycache__
