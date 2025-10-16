@@ -1,5 +1,5 @@
 import os
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QGraphicsDropShadowEffect
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QGraphicsDropShadowEffect, QFileDialog
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
@@ -215,3 +215,10 @@ class UIHandlers:
                     outline: none;
                 }
             """)
+    
+    def open_file_picker(self):
+        filename, _ = QFileDialog.getOpenFileName(self.parent, "Open File",
+                                       "../../input/",
+                                       "Text (*.json)")
+        
+        return filename

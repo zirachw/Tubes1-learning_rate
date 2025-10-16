@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit, QComboBox, QPushButton,
     QVBoxLayout, QHBoxLayout, QGridLayout, QRadioButton, QButtonGroup, QScrollArea, QFrame,
-    QCompleter, QCheckBox, QMessageBox, QProgressBar, QGraphicsDropShadowEffect
+    QCompleter, QCheckBox, QMessageBox, QProgressBar, QGraphicsDropShadowEffect,
+    QFileDialog
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QThreadPool, QRunnable, QObject, QTimer
 from PyQt6.QtGui import QIntValidator, QIcon
@@ -18,7 +19,7 @@ class MainWindow(QWidget):
         
         self.init_ui()
         
-        self.setWindowTitle("CV Analyzer App")
+        self.setWindowTitle("Class Scheduler")
         self.setMinimumSize(800, 400)
         self.resize(1200, 800)
         self.setMinimumSize(800, 400)
@@ -31,7 +32,7 @@ class MainWindow(QWidget):
         main_layout.setContentsMargins(15, 15, 15, 15)
         left_panel = QVBoxLayout()
         right_panel = QVBoxLayout()
-        title = QLabel("CV Analyzer App")
+        title = QLabel("Class Scheduler")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("""
             font-size: 28px; 
@@ -42,7 +43,41 @@ class MainWindow(QWidget):
             letter-spacing: -0.5px;
         """)
         left_panel.addWidget(title)
+        filepicker_button = QPushButton("Select Input File")
+        filepicker_button.clicked.connect(self.open_file_picker)
+        filepicker_button.setStyleSheet("""
+            QPushButton {
+                background-color: #6b7280;
+                color: white;
+                border: 2px solid #6b7280;
+                border-left: none;
+                border-right: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0px;
+            }
+            QPushButton:hover {
+                background-color: #4b5563;
+                border-color: #4b5563;
+                border-left: none;
+                border-right: none;
+            }
+            QPushButton:pressed {
+                background-color: #374151;
+                border-color: #374151;
+                border-left: none;
+                border-right: none;
+            }
+        """)
+        self.filepicker_label = QLabel("No Selected File")
+
+
+        left_panel.addWidget(filepicker_button)
+        left_panel.addWidget(self.filepicker_label)
+        
         keyword_layout = QVBoxLayout()
+        
         keyword_label = QLabel("Keywords :")
         keyword_label.setStyleSheet("""
             font-size: 15px;
@@ -570,3 +605,10 @@ class MainWindow(QWidget):
 
     def open_summary_viewer(self, cv_data):
         return self.ui_handlers.open_summary_viewer(cv_data)
+
+    def open_file_picker(self):
+        filename = self.ui_handlers.open_file_picker()
+        if filename:
+            self.filepicker_label.setText(f"Selected File: {filename}")
+        else:
+            self.filepicker_label.setText(f"No Selected File")
