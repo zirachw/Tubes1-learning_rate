@@ -1,5 +1,5 @@
 import json
-from .entity import Course, Room, Student
+from src.core.entity import Course, Room, Student
 
 class Parse:
     def __init__(self, filePath:str):
