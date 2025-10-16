@@ -1,33 +1,72 @@
-from src.local_search import LocalSearch
-from random import random
+from .local_search import LocalSearch
+from src.core.state import State
+import matplotlib.pyplot as plt
+import random
 import math
 
 class SimulatedAnnealing(LocalSearch):
-	def __init__(self):
-		super(self)
-		self.probabilityValues = []
-		self.localOptimaCount = 0
+    def __init__(self, state: State, initial_temp: float = 1000.0, cooling_rate: float = 0.95, max_iteration: int = 1000):
+        super().__init__(state)
+        self.initial_temp = initial_temp
+        self.cooling_rate = cooling_rate
+        self.max_iteration = max_iteration
+        self.probability_values = []
+        self.stuck_count = 0
 
-	def search(self):
-		current = self.state.initial()
-		
-		while True:
-			# TODO Implement Scheduler
-			t = schedule() # type: ignore 
+    def search(self) -> State:
+        self.start_timer()
 
-			if(t == 0):
-				return current
-			
-			next = self.state.random_neighbor()
-			de = next.value - current.value
-			if(de > 0):
-				current = next
-			else:
-				if(de == 0):
-					self.localOptimaCount += 1
-				probability = pow(math.e, de/t)
-				self.probabilityValues.append(probability)
-				# random.random() produces 0.0 <= X < 1.0
-				if (random.random() < probability):
-					current = next 
-		
+        temperature = self.initial_temp
+
+        for _ in range(self.max_iteration):
+            current_value = self.state.calculate_objective()
+            self.objective_history.append(current_value)
+
+            if temperature == 0:
+                break
+
+            operation = self.state.get_random_neighbor()
+            self.iteration += 1
+
+            neighbor = self.state.copy()
+            neighbor.execute_operation(operation)
+            neighbor_value = neighbor.calculate_objective()
+
+            delta = neighbor_value - current_value
+
+            if delta < 0:
+                self.state.execute_operation(operation)
+            else:
+                if delta == 0:
+                    self.stuck_count += 1
+
+                probability = math.exp(-delta / temperature)
+                self.probability_values.append(probability)
+
+                if random.random() < probability:
+                    self.state.execute_operation(operation)
+
+            temperature *= self.cooling_rate
+
+        self.final_state = self.state
+        self.end_timer()
+        
+        return self.state
+
+    def plot(self):
+        super().plot()
+
+        if self.probability_values:
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.probability_values, linewidth=2, color='orange')
+            plt.xlabel('Iteration (when worse neighbor accepted)', fontsize=12)
+            plt.ylabel('Acceptance Probability (e^(-ΔE/T))', fontsize=12)
+            plt.title('Simulated Annealing - Acceptance Probability vs Iterations', fontsize=14)
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+
+    def print_summary(self):
+        super().print_summary()
+        print(f"Initial Temperature: {self.initial_temp}")
+        print(f"Cooling Rate: {self.cooling_rate}")
+        print(f"Stuck at Local Optima (ΔE=0): {self.stuck_count} times\n") 
