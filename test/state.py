@@ -1,8 +1,8 @@
-from src.parse import Parse
-from src.state import State
+from src.utils.parse import Parse
+from src.core.state import State
 
 print("=" * 80)
-print("STATE CLASS TEST - Class Scheduling Visualization")
+print("STATE_V2 CLASS TEST - New Architecture")
 print("=" * 80)
 print()
 
@@ -32,128 +32,89 @@ for room in rooms:
 print()
 
 print("-" * 80)
-print("STUDENTS (sample):")
+print("CREATING STATE...")
 print("-" * 80)
-for i, student in enumerate(students[:5]):
-    print(f"  {student.NIM}: enrolled in {student.courses}")
-    if i == 4 and len(students) > 5:
-        print(f"  ... and {len(students) - 5} more students")
+state = State(courses, rooms, students, objective='capacity_overflow')
+print(f"[OK] Created state with {len(state.courses)} courses")
 print()
 
 print("-" * 80)
-print("CREATING STATE...")
+print("INITIALIZING RANDOM SCHEDULE...")
 print("-" * 80)
-state = State(courses, rooms, students, objective='student_conflicts')
-
-print(f"[OK] Created {len(state.all_meetings)} course meetings")
+state.initial_state()
+print(f"[OK] Created {len(state.course_meetings)} course meetings")
 print()
 
 print("Meeting breakdown by course:")
 course_meetings = {}
-for meeting in state.all_meetings:
+for meeting in state.course_meetings:
     code = meeting.course.code
     if code not in course_meetings:
         course_meetings[code] = []
     course_meetings[code].append(meeting)
 
 for code, meetings in course_meetings.items():
-    print(f"  {code}: {len(meetings)} meetings × 1h each = {len(meetings)}h total")
+    total_hours = sum(m.duration for m in meetings)
+    durations = [m.duration for m in meetings]
+    print(f"  {code}: {len(meetings)} meetings {durations} = {total_hours}h total")
 print()
 
 print("-" * 80)
-print("INITIALIZING RANDOM SCHEDULE...")
+print("TESTING OBJECTIVE CALCULATION...")
 print("-" * 80)
-state.initialize_random()
-print(f"[OK] Randomly assigned {len(state.meeting_locations)} meetings")
-print()
-
-print("Sample scheduled slots:")
-slots = state.get_all_scheduled_slots()
-for i, slot in enumerate(slots[:5]):
-    print(f"  {slot}")
-    if i == 4 and len(slots) > 5:
-        print(f"  ... and {len(slots) - 5} more slots")
+objective_value = state.calculate_objective()
+print(f"Objective function: {state.objective}")
+print(f"Penalty: {objective_value}")
+print(f"Cached objective (2nd call): {state.calculate_objective()}")
 print()
 
 print("=" * 80)
 print("SCHEDULE VISUALIZATION")
 print("=" * 80)
-for room in rooms:
-    state.visualize(room.code)
+state.visualize()
 print()
 
 print("=" * 80)
-print("TESTING NEIGHBOR GENERATION")
+print("TESTING SUCCESSOR OPERATIONS")
 print("=" * 80)
 
-print("\nOriginal state objective:", state.calculate_objective())
-print("\nGenerating 3 random neighbors...\n")
+print(f"\nOriginal state objective: {state.calculate_objective()}")
+print(f"Number of valid operations: {len(state.successors)}")
+print("\nTesting 5 random operations...\n")
 
-for i in range(3):
-    neighbor = state.get_random_neighbor()
-    print(f"Neighbor {i+1} objective: {neighbor.calculate_objective()}")
-
-print()
-
-print("-" * 80)
-print("TESTING SWAP OPERATION")
-print("-" * 80)
-
-if len(state.all_meetings) >= 2:
-    meeting1 = state.all_meetings[0]
-    meeting2 = state.all_meetings[1]
-
-    loc1_before = state.meeting_locations.get(meeting1)
-    loc2_before = state.meeting_locations.get(meeting2)
-
-    print(f"\nBefore swap:")
-    print(f"  {meeting1.course.code}[{meeting1.meeting_index}] at {loc1_before}")
-    print(f"  {meeting2.course.code}[{meeting2.meeting_index}] at {loc2_before}")
-
-    state_copy = state.copy()
-    state_copy.swap_meetings(meeting1, meeting2)
-
-    loc1_after = state_copy.meeting_locations.get(meeting1)
-    loc2_after = state_copy.meeting_locations.get(meeting2)
-
-    print(f"\nAfter swap:")
-    print(f"  {meeting1.course.code}[{meeting1.meeting_index}] at {loc1_after}")
-    print(f"  {meeting2.course.code}[{meeting2.meeting_index}] at {loc2_after}")
-
-    print("\n[OK] Swap operation successful!")
-print()
-
-print("-" * 80)
-print("TESTING MOVE TO EMPTY SLOT OPERATION")
-print("-" * 80)
-
-if len(state.all_meetings) >= 1:
-    meeting = state.all_meetings[0]
-    loc_before = state.meeting_locations.get(meeting)
-
-    print(f"\nBefore move:")
-    print(f"  {meeting.course.code}[{meeting.meeting_index}] at {loc_before}")
-
-    state_copy = state.copy()
-
-    moved = False
-    for room in rooms:
-        for day in range(5):
-            for hour in range(7, 17):
-                if state_copy.move_meeting_to_empty_slot(meeting, room.code, day, hour):
-                    loc_after = state_copy.meeting_locations.get(meeting)
-                    print(f"\nAfter move:")
-                    print(f"  {meeting.course.code}[{meeting.meeting_index}] at {loc_after}")
-                    print("\n[OK] Move operation successful!")
-                    moved = True
-                    break
-            if moved:
-                break
-        if moved:
+for i in range(5):
+    try:
+        if not state.successors:
+            print(f"Operation {i+1}: No more valid operations")
             break
 
-    if not moved:
-        print("\n[WARNING] Could not find empty slot (schedule might be full)")
+        operation = state.get_random_neighbor()
+        print(f"Operation {i+1}: {operation[0]} (removed from list)")
+
+        # Execute on a copy to test
+        test_state = state.copy()
+        test_state.execute_operation(operation)
+        print(f"  Result objective: {test_state.calculate_objective()}")
+        print(f"  Remaining operations in original: {len(state.successors)}")
+    except ValueError as e:
+        print(f"Operation {i+1}: ERROR - {e}")
+
+print()
+
+print("-" * 80)
+print("TESTING EXECUTE OPERATION")
+print("-" * 80)
+state_copy = state.copy()
+print(f"Original objective: {state_copy.calculate_objective()}")
+print(f"Operations before: {len(state_copy.successors)}")
+
+if state_copy.successors:
+    operation = state_copy.successors[0]
+    print(f"\nExecuting operation: {operation[0]}")
+    state_copy.execute_operation(operation)
+    print(f"New objective: {state_copy.calculate_objective()}")
+    print(f"Operations after (recomputed): {len(state_copy.successors)}")
+
 print()
 
 print("=" * 80)
