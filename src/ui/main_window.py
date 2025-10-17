@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QComboBox, QPushButton,
-    QVBoxLayout, QMessageBox, QHBoxLayout
+    QVBoxLayout, QMessageBox, QHBoxLayout, QGridLayout, QScrollArea
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QIntValidator, QIcon
@@ -32,7 +32,8 @@ class MainWindow(QWidget):
         self.ui_handlers = UIHandlers(self)
         self.worker = None  
         self.init_ui()
-        
+        self.ui_handlers.load_reports()
+
         self.setWindowTitle("Class Scheduler")
         self.setMinimumSize(800, 400)
         self.resize(1200, 800)
@@ -47,9 +48,11 @@ class MainWindow(QWidget):
         """)
 
         main_layout = QVBoxLayout()
-        main_layout.setSpacing(20)
+        
+        top_panel = QVBoxLayout()
+        main_layout.setSpacing(12)
         main_layout.setContentsMargins(15, 15, 15, 15)
-        main_layout.addStretch(1)
+        
         title = QLabel("Class Scheduler")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("""
@@ -60,7 +63,7 @@ class MainWindow(QWidget):
             padding: 8px;
             letter-spacing: -0.5px;
         """)
-        main_layout.addWidget(title)
+        top_panel.addWidget(title)
 
         input_layout = QHBoxLayout()
         filepicker_button = QPushButton("Select Input File")
@@ -76,19 +79,15 @@ class MainWindow(QWidget):
                 border-radius: 10px;
                 font-size: 14px;
                 font-weight: bold;
-                margin: 4px;
+                padding: 4px;
             }
             QPushButton:hover {
                 background-color: #4b5563;
                 border-color: #4b5563;
-                border-left: none;
-                border-right: none;
             }
             QPushButton:pressed {
                 background-color: #374151;
                 border-color: #374151;
-                border-left: none;
-                border-right: none;
             }
         """)
         self.filepicker_label = QLabel("No Selected File")
@@ -99,7 +98,7 @@ class MainWindow(QWidget):
 
         input_layout.addWidget(filepicker_button)
         input_layout.addWidget(self.filepicker_label)
-        main_layout.addLayout(input_layout)
+        top_panel.addLayout(input_layout)
 
         algorithm_layout = QVBoxLayout()
         
@@ -155,7 +154,7 @@ class MainWindow(QWidget):
 
         algorithm_layout.addWidget(algorithm_label)
         algorithm_layout.addWidget(self.algorithm_combo_box)
-        main_layout.addLayout(algorithm_layout)
+        top_panel.addLayout(algorithm_layout)
         algo_label = QLabel("Search Algorithm:")
         algo_label.setStyleSheet("""
             font-size: 15px;
@@ -173,7 +172,7 @@ class MainWindow(QWidget):
         
         algorithm_layout.addLayout(self.params_layout)
 
-        main_layout.addLayout(algorithm_layout)
+        top_panel.addLayout(algorithm_layout)
         self.search_btn = QPushButton("Search")
         self.search_btn.clicked.connect(self.run_algorithm)
         self.search_btn.setStyleSheet("""
@@ -197,8 +196,61 @@ class MainWindow(QWidget):
                 color: #ffffff;
             }
         """)
-        main_layout.addWidget(self.search_btn)
-        main_layout.addStretch(1)
+        top_panel.addWidget(self.search_btn)
+
+        # Right Panel
+        bottom_panel = QVBoxLayout()
+        report_title = QLabel("Local Search Report")
+        report_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        report_title.setStyleSheet("""
+            font-size: 24px; 
+            font-weight: 500; 
+            color: #1e40af;
+            margin: 8px 0;
+            padding: 8px;
+            letter-spacing: -0.5px;
+        """)
+
+        bottom_panel.addWidget(report_title)
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }            QScrollBar:vertical {
+                border: none;
+                width: 10px;
+                background: #f1f5f9;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background: #3b82f6;
+                border-radius: 5px;
+            }            QScrollBar::handle:vertical:hover {
+                background: #2563eb;
+            }
+        """)
+        scroll_content = QWidget()
+        self.report_cards_layout = QGridLayout(scroll_content)
+        self.report_cards_layout.setSpacing(12)
+        self.report_cards_layout.setContentsMargins(12, 12, 12, 12)
+        scroll_area.setWidget(scroll_content)
+        bottom_panel.addWidget(scroll_area)
+
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #f8fafc;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                color: #1e293b;
+            }
+        """)
+        bottom_panel.addStretch(1)
+
+        main_layout.addLayout(top_panel)
+        main_layout.addLayout(bottom_panel)
 
         
         self.setLayout(main_layout)
@@ -356,6 +408,7 @@ class MainWindow(QWidget):
         self.search_btn.setText("🔍 Search CVs")
         self.progress_bar.setVisible(False)
         self.cancel_btn.setVisible(False)
+
 
     def on_search_completed(self, cv_results):
         try:
@@ -572,6 +625,11 @@ class MainWindow(QWidget):
                 plot_image_path=plot_path,
                 extra_image_path=extra_image_path
             )
+
+            card = self.ui_handlers.create_report_card(pdf_path)
+            row = self.report_cards_layout.count() // 3
+            col = self.report_cards_layout.count() % 3
+            self.report_cards_layout.addWidget(card, row, col)
 
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Information)

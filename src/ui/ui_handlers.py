@@ -2,6 +2,9 @@ import os
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, QGraphicsDropShadowEffect, QFileDialog
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
+from datetime import datetime
+
+from .pdf_viewer import PdfViewerDialog
 
 class UIHandlers:
     def __init__(self, parent):
@@ -12,6 +15,22 @@ class UIHandlers:
             child = self.parent.results_container.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
+
+    def load_reports(self):
+        report_dir = "output/report"
+
+        if not os.path.exists(report_dir):
+            return
+
+        pdf_files = [pdf for pdf in os.listdir(report_dir) if pdf.endswith(".pdf")]
+
+        for pdf_file in pdf_files:
+            pdf_path = os.path.join(report_dir, pdf_file)
+            card = self.create_report_card(pdf_path)
+
+            row = self.parent.report_cards_layout.count() // 3
+            col = self.parent.report_cards_layout.count() % 3
+            self.parent.report_cards_layout.addWidget(card, row, col)
 
     def display_search_results(self, cv_results):
         self.clear_results_container()
@@ -30,7 +49,22 @@ class UIHandlers:
             card = self.create_search_result_card(cv_data)
             self.parent.results_container.addWidget(card, row, col)
 
-    def create_search_result_card(self, cv_data):
+    def create_report_card(self, pdf_path):
+        filename = os.path.basename(pdf_path).replace('.pdf', '')
+
+        parts = filename.split('_report_')
+        if len(parts) == 2:
+            algo_name = parts[0].replace('_', ' ').title()
+            timestamp = parts[1]
+            try:
+                dt = datetime.strptime(timestamp, "%Y%m%d_%H%M%S")
+                time_format = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                time_format = timestamp
+        else:
+            algo_name = "Unknown Algorithm"
+            time_format = datetime.now().strftime("%Y-%m-%d %H:%M:%S")   
+
         card = QFrame()
         effect = QGraphicsDropShadowEffect()
         effect.setColor(QColor(0, 0, 0, 50))
@@ -42,10 +76,8 @@ class UIHandlers:
         card.setStyleSheet("""
             QFrame {                
                 background-color: #ffffff;
-                border: 1px solid #e2e8f0;
-                border-radius: 16px;
-                padding: 12px;
-                margin: 4px;
+                padding: 8px;
+                border-radius: 8px;
             }
             QFrame:hover {
                 background-color: #f8fafc;                
@@ -58,73 +90,32 @@ class UIHandlers:
         card_layout.setSpacing(8)  
         card_layout.setContentsMargins(8, 8, 8, 8)  # Add margins
         
-        # Header layout (name and role)
-        header_layout = QVBoxLayout()
-        header_layout.setSpacing(2)
-        
-        # Candidate name 
-        name_label = QLabel(cv_data['name'])
-        name_label.setStyleSheet("""
+        algo_label = QLabel(algo_name)
+        algo_label.setStyleSheet("""
             font-weight: 700;
             font-size: 16px;
             color: #1e40af;
             margin-bottom: 2px;
         """)
-        header_layout.addWidget(name_label)
         
-        if cv_data.get('role'):
-            role_label = QLabel(f"{cv_data['role']}")
-            role_label.setWordWrap(True)
-            role_label.setStyleSheet("""
-                font-weight: 500;
-                font-size: 14px;
-                color: #4b5563;
-                margin-bottom: 2px;
-                line-height: 1.2;
-            """)
-            header_layout.addWidget(role_label)
-        
-        match_count_label = QLabel(f"{cv_data['total_matches']} matches")
-        match_count_label.setStyleSheet("""
-            font-weight: 600;
-            font-size: 14px;
-            color: #2563eb;
-            margin-bottom: 8px;
+        timestamp_label = QLabel(time_format)
+        timestamp_label.setStyleSheet("""
+        font-weight: 400;
+        font-size: 12px;
         """)
-        header_layout.addWidget(match_count_label)
         
-        card_layout.addLayout(header_layout)
+        path_label = QLabel(f"{os.path.basename(pdf_path)}")
+        path_label.setStyleSheet("""
+        font-weight: 400;
+        font-size: 12px;
+        """)
 
-        match_text = "Matched keywords:\n"
-        for i, (keyword, count) in enumerate(cv_data['matches'], start=1):
-            match_text += f"{i}. {keyword}: {count} occurrence(s)\n"
-        match_label = QLabel(match_text)
-        match_label.setStyleSheet("""
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 12px;
-        """)
-        card_layout.addWidget(match_label)
+        card_layout.addWidget(algo_label)
+        card_layout.addWidget(timestamp_label)
+        card_layout.addWidget(path_label)
+
         btn_layout = QHBoxLayout()
-        summary_btn = QPushButton("Summary")
-        summary_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #e0e7ff;
-                color: #3730a3;
-                border: none;
-                padding: 6px 14px;
-                font-size: 13px;
-                font-weight: 500;
-                border-radius: 15px;
-                margin-right: 4px;
-            }
-            QPushButton:hover {
-                background-color: #c7d2fe;
-            }
-        """)
-        summary_btn.clicked.connect(lambda: self.open_summary_viewer(cv_data))
-        view_btn = QPushButton("View CV")
+        view_btn = QPushButton("View Report")
         view_btn.setStyleSheet("""
             QPushButton {
                 background: #3b82f6;
@@ -133,89 +124,63 @@ class UIHandlers:
                 padding: 6px 14px;
                 font-size: 13px;
                 font-weight: 500;
-                border-radius: 15px;
+                border-radius: 12px;
                 margin-left: 4px;
             }
             QPushButton:hover {
                 background: #2563eb;
             }
         """)
-        view_btn.clicked.connect(lambda: self.open_pdf_viewer(cv_data['path'], cv_data['name']))
-        btn_layout.addWidget(summary_btn)
+        view_btn.clicked.connect(lambda: self.open_pdf_dialog(pdf_path))
+        
+        open_btn = QPushButton("Open File")
+        open_btn.setStyleSheet("""
+            QPushButton {
+                background: #D3D3D3;
+                color: black;
+                border: none;
+                padding: 6px 14px;
+                font-size: 13px;
+                font-weight: 500;
+                border-radius: 12px;
+                margin-left: 4px;
+            }
+            QPushButton:hover {
+                background: #808080;
+            }
+        """)
+        open_btn.clicked.connect(lambda: self.open_pdf_viewer(pdf_path))
+
         btn_layout.addWidget(view_btn)
+        btn_layout.addWidget(open_btn)
+
         card_layout.addLayout(btn_layout)
         card.setLayout(card_layout)
         return card
 
-    def open_pdf_viewer(self, pdf_path, candidate_name):
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-        data_dir = os.path.join(project_root, 'data')
-        os.makedirs(data_dir, exist_ok=True)
-        if not os.path.exists(pdf_path):
-            pdf_path = os.path.join(data_dir, "sample_cv.pdf")
-            if not os.path.exists(pdf_path):
-                QMessageBox.warning(
-                    self.parent,
-                    "File Not Found",
-                    f"PDF file not found:\n{pdf_path}\n\nPlease check that the file exists."
-                )
-                return
-
-
-    def increment_value(self):
+    def open_pdf_dialog(self, pdf_path):
         try:
-            current_value = int(self.parent.match_input.text())
-            if current_value < 20:
-                self.parent.match_input.setText(str(current_value + 1))
-        except ValueError:
-            self.parent.match_input.setText("1")
-
-    def decrement_value(self):
-        try:
-            current_value = int(self.parent.match_input.text())
-            if current_value > 1:
-                self.parent.match_input.setText(str(current_value - 1))
-        except ValueError:
-            self.parent.match_input.setText("1")
-
-    def toggle_show_all(self, checked):
-        self.parent.match_input.setEnabled(not checked)
-        self.parent.increment_btn.setEnabled(not checked)
-        self.parent.decrement_btn.setEnabled(not checked)
-        if checked:
-            self.parent.match_input.setStyleSheet("""
-                QLineEdit {
-                    padding: 10px 15px;
-                    font-size: 14px;
-                    border: 2px solid #d1d5db;
-                    border-radius: 5px;
-                    background-color: #f3f4f6;
-                    color: #9ca3af;
-                    min-width: 100px;
-                    max-width: 120px;
-                }
-            """)
-        else:
-            self.parent.match_input.setStyleSheet("""
-                QLineEdit {
-                    padding: 10px 15px;
-                    font-size: 14px;
-                    border: 2px solid #e5e7eb;
-                    border-radius: 5px;
-                    background-color: #ffffff;
-                    color: #374151;
-                    min-width: 100px;
-                    max-width: 120px;
-                }
-                QLineEdit:hover {
-                    border-color: #93c5fd;
-                }
-                QLineEdit:focus {
-                    border-color: #3b82f6;
-                    outline: none;
-                }
-            """)
+            dialog = PdfViewerDialog(pdf_path, self.parent)
+            dialog.show()
+        except:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Failed")
+            msg.setText(f"Failed to open PDF")
+            msg.setStyleSheet(self.parent.get_message_box_style())
+            msg.exec()
     
+    def open_pdf_viewer(self, pdf_path):
+        try:
+            os.startfile(pdf_path) #Only on windows
+        except:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Failed")
+            msg.setText(f"Failed to open PDF")
+            msg.setStyleSheet(self.parent.get_message_box_style())
+            msg.exec()
+
     def open_file_picker(self):
         filename, _ = QFileDialog.getOpenFileName(self.parent, "Open File",
                                        "./input/",
