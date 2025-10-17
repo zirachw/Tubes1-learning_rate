@@ -53,8 +53,10 @@ class SimulatedAnnealing(LocalSearch):
         return self.state
 
     def plot(self):
-        super().plot()
+        from datetime import datetime
+        objective_plot = super().plot()
 
+        probability_plot = None
         if self.probability_values:
             plt.figure(figsize=(10, 6))
             plt.plot(self.probability_values, linewidth=2, color='orange')
@@ -64,10 +66,18 @@ class SimulatedAnnealing(LocalSearch):
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
 
-            filename = "output/simulatedannealing_probability.png"
+            import os
+            os.makedirs("output/plot", exist_ok=True)
+            
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"output/plot/simulatedannealing_probability_{timestamp}.png"
             plt.savefig(filename)
             print(f"Saved: {filename}")
             plt.close()
+            probability_plot = filename
+        
+        self.extra_plot_filename = probability_plot
+        return objective_plot
 
     def print_summary(self):
         super().print_summary()

@@ -30,8 +30,7 @@ class MainWindow(QWidget):
         super().__init__()
         
         self.ui_handlers = UIHandlers(self)
-        self.worker = None  # Store reference to worker thread
-        
+        self.worker = None  
         self.init_ui()
         
         self.setWindowTitle("Class Scheduler")
@@ -489,8 +488,9 @@ class MainWindow(QWidget):
             
             state = State(courses, rooms, students)
             state.initial_state()
-            state.visualize()
-            
+            self.initial_state = state.output_visualize()
+            self.initial_objective = state.calculate_objective()
+
             selected_algo = self.algorithm_combo_box.currentText()
             
             if selected_algo == "Steepest Ascent Hill Climb":
@@ -522,6 +522,8 @@ class MainWindow(QWidget):
                 algo = GeneticAlgorithm(state, population_size=pop_size, 
                                        max_iteration=max_iter)
             
+            self.current_algorithm = selected_algo
+
             self.search_btn.setEnabled(False)
             self.search_btn.setText("Running...")
             self.algorithm_combo_box.setEnabled(False)
@@ -543,16 +545,38 @@ class MainWindow(QWidget):
     
     def on_algorithm_finished(self, algo, result):
         try:
+            from src.utils.pdf_report import generate_pdf_report
+            from datetime import datetime
+
             result.visualize()
             algo.print_summary()
-            algo.plot()
+            plot_path = algo.plot()
+
+            final_state = result.output_visualize()
+            final_objective = result.calculate_objective()
             
             selected_algo = self.algorithm_combo_box.currentText()
             
+            extra_image_path = None
+            if hasattr(algo, 'extra_plot_filename'):
+                extra_image_path = algo.extra_plot_filename
+            
+            pdf_path = generate_pdf_report(
+                algorithm_name=self.current_algorithm,
+                initial_state_text=self.initial_state,
+                final_state_text=final_state,
+                initial_objective=self.initial_objective,
+                final_objective=final_objective,
+                duration=algo.duration,
+                iterations=algo.iteration,
+                plot_image_path=plot_path,
+                extra_image_path=extra_image_path
+            )
+
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Information)
             msg.setWindowTitle("Success")
-            msg.setText(f"{selected_algo} completed successfully!\n Check the console for results and output folder for plots.")
+            msg.setText(f"{selected_algo} completed successfully!\n\nPDF report saved to:\n{pdf_path}")
             msg.setStyleSheet(self.get_message_box_style())
             msg.exec()
         except Exception as e:

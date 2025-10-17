@@ -18,8 +18,6 @@ class GeneticAlgorithm(LocalSearch):
         self.avg_fitness_history: List[float] = []
 
     def _build_gene_map(self):
-        """Mapping: gene_index -> (course_index, sks_index)"""
-
         for course_idx, course in enumerate(self.state.courses):
             for sks_idx in range(course.SKS):
                 self.gene_map.append((course_idx, sks_idx))
@@ -151,8 +149,10 @@ class GeneticAlgorithm(LocalSearch):
         return self.final_state
 
     def plot(self):
-        super().plot()
+        from datetime import datetime
+        objective_plot = super().plot()
 
+        fitness_plot = None
         if self.max_fitness_history and self.avg_fitness_history:
             plt.figure(figsize=(10, 6))
             plt.plot(self.max_fitness_history, linewidth=2, label='Max Fitness', color='green')
@@ -164,10 +164,18 @@ class GeneticAlgorithm(LocalSearch):
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
 
-            filename = "output/geneticalgorithm_fitness.png"
+            import os
+            os.makedirs("output/plot", exist_ok=True)
+            
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"output/plot/geneticalgorithm_fitness_{timestamp}.png"
             plt.savefig(filename)
             print(f"Saved: {filename}")
             plt.close()
+            fitness_plot = filename
+        
+        self.extra_plot_filename = fitness_plot
+        return objective_plot
 
     def print_summary(self):
         super().print_summary()

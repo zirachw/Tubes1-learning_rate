@@ -81,8 +81,6 @@ class State:
         self.get_all_successors()
 
     def _swap_meetings(self, idx1: int, idx2: int, duration: int):
-        """Swap 'duration' consecutive meetings starting from idx1 with those from idx2"""
-
         for offset in range(duration):
             m1 = self.course_meetings[idx1 + offset]
             m2 = self.course_meetings[idx2 + offset]
@@ -97,8 +95,6 @@ class State:
             self.schedule[m2.room.code][m2.time.start[0]][m2.time.start[1]].append(m2.course)
 
     def _move_meetings(self, idx: int, new_room: Room, new_day: int, new_start_hour: int, duration: int):
-        """Move 'duration' consecutive meetings starting from idx to new location"""
-
         for offset in range(duration):
             meeting = self.course_meetings[idx + offset]
 
@@ -276,6 +272,31 @@ class State:
                     else:
                         print(f"{'':15}", end='')
                 print()
+
+    def output_visualize(self, room_code: Optional[str] = None) -> str:
+        rooms_to_show = [room_code] if room_code else [r.code for r in self.rooms]
+
+        output = ""
+        for room in rooms_to_show:
+            output += f"\nKode ruang: {room}\n"
+            output += f"{'Jam':<5}"
+            for day_name in self.DAYS:
+                output += f"{day_name:<15}"
+            output += "\n"
+
+            for hour in range(self.MIN_HOUR, self.MAX_HOUR + 1):
+                output += f"{hour:<5}"
+                for day in range(5):
+                    courses = self.schedule[room][day][hour]
+                    if courses:
+                        codes = [c.code.split('_')[0] for c in courses]
+                        display = ','.join(codes)
+                        output += f"{display:<15}"
+                    else:
+                        output += f"{'':15}"
+                output += "\n"
+        
+        return output
 
     def __repr__(self):
         return f"State({len(self.course_meetings)} meetings, obj={self.calculate_objective():.2f})"

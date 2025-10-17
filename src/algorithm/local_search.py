@@ -37,6 +37,9 @@ class LocalSearch(ABC):
             print("No data to plot")
             return
 
+        from datetime import datetime
+        import os
+        
         plt.figure(figsize=(10, 6))
         plt.plot(self.objective_history, linewidth=2)
         plt.xlabel('Iteration', fontsize=12)
@@ -45,11 +48,16 @@ class LocalSearch(ABC):
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
 
-        # Save plot
-        filename = f"output/{self.__class__.__name__.lower()}_objective.png"
+        os.makedirs("output/plot", exist_ok=True)
+        
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"output/plot/{self.__class__.__name__.lower()}_objective_{timestamp}.png"
         plt.savefig(filename)
         print(f"Saved: {filename}")
         plt.close()
+        
+        self.plot_filename = filename
+        return filename
 
     def print_summary(self):
 
