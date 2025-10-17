@@ -37,8 +37,6 @@ class MainWindow(QWidget):
         self.setWindowTitle("Class Scheduler")
         self.setMinimumSize(800, 400)
         self.resize(1200, 800)
-        self.setMinimumSize(800, 400)
-        self.resize(1200, 800)
 
     def init_ui(self):
         self.setStyleSheet("""
@@ -599,7 +597,6 @@ class MainWindow(QWidget):
     def on_algorithm_finished(self, algo, result):
         try:
             from src.utils.pdf_report import generate_pdf_report
-            from datetime import datetime
 
             result.visualize()
             algo.print_summary()
@@ -623,10 +620,10 @@ class MainWindow(QWidget):
                 duration=algo.duration,
                 iterations=algo.iteration,
                 plot_image_path=plot_path,
-                extra_image_path=extra_image_path
+                extra_image_path=extra_image_path,
+                algorithm_instance=algo
             )
 
-            # Reload all cards sorted by date (newest first)
             self.ui_handlers.load_reports()
 
             msg = QMessageBox(self)

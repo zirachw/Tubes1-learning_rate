@@ -50,6 +50,7 @@ def generate_pdf_report(
     plot_image_path: str,
     extra_image_path: str = None,
     output_path: str = None,
+    algorithm_instance = None
 ) -> str:
     pdf = SchedulePDF()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -59,6 +60,26 @@ def generate_pdf_report(
     pdf.add_info_box('Algorithm', algorithm_name)
     pdf.add_info_box('Total Iterations', str(iterations))
     pdf.add_info_box('Search Duration', f'{duration:.2f} seconds')
+    
+    if algorithm_instance:
+        if hasattr(algorithm_instance, 'max_sideways'):
+            pdf.add_info_box('Max Sideways Moves', str(algorithm_instance.max_sideways))
+            pdf.add_info_box('Sideways Moves', f'{algorithm_instance.sideways_count}/{algorithm_instance.max_sideways}')
+        
+        if hasattr(algorithm_instance, 'max_restart'):
+            pdf.add_info_box('Max Restarts', str(algorithm_instance.max_restart))
+            if hasattr(algorithm_instance, 'iteration_per_restart'):
+                pdf.add_info_box('Iterations per Restart', f'{algorithm_instance.iteration_per_restart}')
+        
+        if hasattr(algorithm_instance, 'initial_temp'):
+            pdf.add_info_box('Initial Temperature', str(algorithm_instance.initial_temp))
+            pdf.add_info_box('Cooling Rate', str(algorithm_instance.cooling_rate))
+            pdf.add_info_box('Stuck at Local Optima', f'{algorithm_instance.stuck_count} times')
+        
+        if hasattr(algorithm_instance, 'population_size'):
+            pdf.add_info_box('Population Size', str(algorithm_instance.population_size))
+            pdf.add_info_box('Max Generations', str(algorithm_instance.max_iteration))
+    
     pdf.ln(5)
     
     pdf.chapter_title('Objective Function Results')
