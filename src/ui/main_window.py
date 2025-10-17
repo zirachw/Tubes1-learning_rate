@@ -626,10 +626,8 @@ class MainWindow(QWidget):
                 extra_image_path=extra_image_path
             )
 
-            card = self.ui_handlers.create_report_card(pdf_path)
-            row = self.report_cards_layout.count() // 3
-            col = self.report_cards_layout.count() % 3
-            self.report_cards_layout.addWidget(card, row, col)
+            # Reload all cards sorted by date (newest first)
+            self.ui_handlers.load_reports()
 
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Information)

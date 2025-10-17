@@ -70,10 +70,11 @@ def generate_pdf_report(
     pdf.add_info_box('Improvement', f'{improvement:.2f} ({improvement_pct:.2f}%)')
     pdf.ln(5)
     
+    pdf.add_page()
     if plot_image_path and os.path.exists(plot_image_path):
         pdf.chapter_title('Objective Function Plot')
         try:
-            pdf.image(plot_image_path, x=10, w=190)
+            pdf.image(plot_image_path, x=20, w=160)
             pdf.ln(5)
         except Exception as e:
             pdf.set_font('Arial', 'I', 10)
@@ -86,7 +87,7 @@ def generate_pdf_report(
             pdf.chapter_title('Probability Plot')
 
         try:
-            pdf.image(extra_image_path, x=10, w=190)
+            pdf.image(extra_image_path, x=20, w=160)
             pdf.ln(5)
         except Exception as e:
             pdf.set_font('Arial', 'I', 10)

@@ -16,13 +16,23 @@ class UIHandlers:
             if child.widget():
                 child.widget().deleteLater()
 
+    def clear_report_cards(self):
+        while self.parent.report_cards_layout.count():
+            child = self.parent.report_cards_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
     def load_reports(self):
+        self.clear_report_cards()
+        
         report_dir = "output/report"
 
         if not os.path.exists(report_dir):
             return
 
         pdf_files = [pdf for pdf in os.listdir(report_dir) if pdf.endswith(".pdf")]
+        # Sort by modification time (newest first)
+        pdf_files.sort(key=lambda x: os.path.getmtime(os.path.join(report_dir, x)), reverse=True)
 
         for pdf_file in pdf_files:
             pdf_path = os.path.join(report_dir, pdf_file)
@@ -31,23 +41,6 @@ class UIHandlers:
             row = self.parent.report_cards_layout.count() // 3
             col = self.parent.report_cards_layout.count() % 3
             self.parent.report_cards_layout.addWidget(card, row, col)
-
-    def display_search_results(self, cv_results):
-        self.clear_results_container()
-        if self.parent.show_all_checkbox.isChecked():
-            results_to_show = cv_results
-        else:
-            try:
-                num_results = int(self.parent.match_input.text())
-                num_results = max(1, min(num_results, 20))
-            except ValueError:
-                num_results = 6
-            results_to_show = cv_results[:num_results]
-        for index, cv_data in enumerate(results_to_show):
-            row = index // 3
-            col = index % 3
-            card = self.create_search_result_card(cv_data)
-            self.parent.results_container.addWidget(card, row, col)
 
     def create_report_card(self, pdf_path):
         filename = os.path.basename(pdf_path).replace('.pdf', '')
@@ -162,22 +155,26 @@ class UIHandlers:
         try:
             dialog = PdfViewerDialog(pdf_path, self.parent)
             dialog.show()
-        except:
-            msg = QMessageBox(self)
+        except Exception as e:
+            msg = QMessageBox(self.parent)  # Fixed: use self.parent
             msg.setIcon(QMessageBox.Icon.Warning)
             msg.setWindowTitle("Failed")
-            msg.setText(f"Failed to open PDF")
+            msg.setText(f"Failed to open PDF:\n{str(e)}")
             msg.setStyleSheet(self.parent.get_message_box_style())
             msg.exec()
     
     def open_pdf_viewer(self, pdf_path):
         try:
-            os.startfile(pdf_path) #Only on windows
-        except:
-            msg = QMessageBox(self)
+            # Convert to absolute path
+            abs_path = os.path.abspath(pdf_path)
+            if not os.path.exists(abs_path):
+                raise FileNotFoundError(f"File not found: {abs_path}")
+            os.startfile(abs_path)  # Only on Windows
+        except Exception as e:
+            msg = QMessageBox(self.parent)  # Fixed: use self.parent
             msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setWindowTitle("Failed")
-            msg.setText(f"Failed to open PDF")
+            msg.setWindowTitle("Failed to Open PDF")
+            msg.setText(f"Failed to open PDF:\n{str(e)}")
             msg.setStyleSheet(self.parent.get_message_box_style())
             msg.exec()
 
