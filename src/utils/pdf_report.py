@@ -1,6 +1,8 @@
+from typing import Dict, List
 from fpdf import FPDF
 import os
 from datetime import datetime
+from ..core.state import State
 
 class SchedulePDF(FPDF):
     
@@ -13,7 +15,7 @@ class SchedulePDF(FPDF):
     def footer(self):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+        self.cell(0, 10, f'{self.page_no()}', 0, 0, 'R')
     
     def chapter_title(self, title: str):
         self.set_font('Arial', 'B', 14)
@@ -38,11 +40,45 @@ class SchedulePDF(FPDF):
         self.set_font('Arial', '', 11)
         self.cell(0, 8, value, 0, 1)
 
+    def add_schedule_table(self, schedule_data: List[Dict]):
+        days = ["Senin", 'Selasa', 'Rabu', 'Kamis', 'Jumat']
+
+        if self.get_y() > 240:
+            self.add_page()
+
+        for item in schedule_data:
+            if item.get('type') == 'header':
+                self.ln()
+                self.set_font('Arial', 'B', 12)
+                self.cell(0, 8, f"Ruang: {item['room']}",0 ,1, 'L', 0)
+                self.set_text_color(0,0,0)
+
+                self.set_font('Arial', 'B', 9)
+                self.cell(15, 7, 'Jam', 1, 0, 'C', 1)
+                for day in days:
+                    self.cell(35, 7, day, 1, 0, 'C', 1)
+                self.ln()
+            else:
+                if self.get_y() > 260:
+                    self.add_page()
+
+                self.set_font('Courier', '', 8)
+                hour = item['hour']
+                self.cell(15, 6, str(hour), 1,0, 'C')
+
+                for day in days:
+                    cell_content = item.get(day, '-')
+                    self.cell(35, 6, cell_content, 1, 0, 'C')
+                self.ln()
+
+        self.ln(3)
+        
+
 
 def generate_pdf_report(
     algorithm_name: str,
-    initial_state_text: str,
-    final_state_text: str,
+    initial_state: State,
+    final_state: State,
     initial_objective: float,
     final_objective: float,
     duration: float,
@@ -116,11 +152,11 @@ def generate_pdf_report(
     
     pdf.add_page()
     pdf.chapter_title('Initial State')
-    pdf.add_monospace_text(initial_state_text)
+    pdf.add_schedule_table(initial_state.output_visualize_table())
     
     pdf.add_page()
     pdf.chapter_title('Final State')
-    pdf.add_monospace_text(final_state_text)
+    pdf.add_schedule_table(final_state.output_visualize_table())
     
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     safe_algo_name = algorithm_name.replace(' ', '_').lower()

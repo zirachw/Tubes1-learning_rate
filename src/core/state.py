@@ -273,30 +273,28 @@ class State:
                         print(f"{'':15}", end='')
                 print()
 
-    def output_visualize(self, room_code: Optional[str] = None) -> str:
+    def output_visualize_table(self, room_code: Optional[str] = None) -> List[Dict]:
         rooms_to_show = [room_code] if room_code else [r.code for r in self.rooms]
 
-        output = ""
-        for room in rooms_to_show:
-            output += f"\nKode ruang: {room}\n"
-            output += f"{'Jam':<5}"
-            for day_name in self.DAYS:
-                output += f"{day_name:<15}"
-            output += "\n"
+        table_data = []
 
+        for room in rooms_to_show:
+            table_data.append({
+                'type': 'header',
+                'room': room
+            })
+            
             for hour in range(self.MIN_HOUR, self.MAX_HOUR + 1):
-                output += f"{hour:<5}"
-                for day in range(5):
-                    courses = self.schedule[room][day][hour]
+                row = {'hour': hour}
+                for day_idx, day_name in enumerate(self.DAYS):
+                    courses = self.schedule[room][day_idx][hour]
                     if courses:
                         codes = [c.code.split('_')[0] for c in courses]
-                        display = ','.join(codes)
-                        output += f"{display:<15}"
+                        row[day_name] = ','.join(codes)
                     else:
-                        output += f"{'':15}"
-                output += "\n"
-        
-        return output
+                        row[day_name] = '-'
+                table_data.append(row)
+        return table_data
 
     def __repr__(self):
         return f"State({len(self.course_meetings)} meetings, obj={self.calculate_objective():.2f})"

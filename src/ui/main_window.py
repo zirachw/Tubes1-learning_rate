@@ -539,7 +539,7 @@ class MainWindow(QWidget):
             
             state = State(courses, rooms, students)
             state.initial_state()
-            self.initial_state = state.output_visualize()
+            self.initial_state = state.copy()
             self.initial_objective = state.calculate_objective()
 
             selected_algo = self.algorithm_combo_box.currentText()
@@ -602,7 +602,7 @@ class MainWindow(QWidget):
             algo.print_summary()
             plot_path = algo.plot()
 
-            final_state = result.output_visualize()
+            final_state = result.copy()
             final_objective = result.calculate_objective()
             
             selected_algo = self.algorithm_combo_box.currentText()
@@ -613,8 +613,8 @@ class MainWindow(QWidget):
             
             pdf_path = generate_pdf_report(
                 algorithm_name=self.current_algorithm,
-                initial_state_text=self.initial_state,
-                final_state_text=final_state,
+                initial_state=self.initial_state,
+                final_state=final_state,
                 initial_objective=self.initial_objective,
                 final_objective=final_objective,
                 duration=algo.duration,
