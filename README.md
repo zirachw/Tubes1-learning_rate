@@ -23,7 +23,6 @@ Program penjadwalan kelas mingguan dengan pendekatan _Local Search_ menggunakan 
            </div>
          </td>
        </tr>
-       </tr>
        <tr align="center">
          <td>13523074</td>
          <td>Ahsan Malik Alfarisi</td>
@@ -39,7 +38,7 @@ Program penjadwalan kelas mingguan dengan pendekatan _Local Search_ menggunakan 
          <td>Farrel Athalla Putra</td>
          <td align="center" >
            <div style="margin-right: 20px;">
-           <a href="hhttps://github.com/farrelathalla" ><img src="https://avatars.githubusercontent.com/u/130957219?v=4" width="48px;" alt=""/> 
+           <a href="https://github.com/farrelathalla" ><img src="https://avatars.githubusercontent.com/u/130957219?v=4" width="48px;" alt=""/> 
              <br/> <sub><b> @farrelathalla </b></sub></a><br/>
            </div>
          </td>
@@ -249,4 +248,5 @@ Repository ini dibuat untuk memenuhi Tugas Besar 1 Mata Kuliah Intelegensi Artif
 [git-url]: https://git-scm.com/
 [python-url]: https://www.python.org/
 [uv-url]: https://docs.astral.sh/uv/getting-started/installation/
+
 
