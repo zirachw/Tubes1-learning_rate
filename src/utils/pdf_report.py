@@ -19,10 +19,10 @@ class SchedulePDF(FPDF):
     
     def chapter_title(self, title: str):
         self.set_font('Arial', 'B', 14)
-        self.set_fill_color(59, 130, 246)  
-        self.set_text_color(255, 255, 255) 
+        self.set_fill_color(34, 139, 34)
+        self.set_text_color(255, 255, 255)
         self.cell(0, 10, title, 0, 1, 'L', 1)
-        self.set_text_color(0, 0, 0)  
+        self.set_text_color(0, 0, 0)
         self.ln(3)
     
     def add_monospace_text(self, text: str):
@@ -40,15 +40,28 @@ class SchedulePDF(FPDF):
         self.set_font('Arial', '', 11)
         self.cell(0, 8, value, 0, 1)
 
+    def add_list_section(self, items: List[str]):
+        self.set_font('Arial', '', 9)
+        for item in items:
+            if self.get_y() > 260:
+                self.add_page()
+            self.cell(10, 6, '-', 0, 0)
+            self.multi_cell(0, 6, item)
+        self.ln(2)
+
     def add_schedule_table(self, schedule_data: List[Dict]):
         days = ["Senin", 'Selasa', 'Rabu', 'Kamis', 'Jumat']
 
-        if self.get_y() > 240:
-            self.add_page()
-
+        table_count = 0
         for item in schedule_data:
             if item.get('type') == 'header':
-                self.ln()
+                if table_count > 0 and table_count % 2 == 0:
+                    self.add_page()
+                elif table_count > 0:
+                    self.ln(5)
+
+                table_count += 1
+
                 self.set_font('Arial', 'B', 12)
                 self.cell(0, 8, f"Ruang: {item['room']}",0 ,1, 'L', 0)
                 self.set_text_color(0,0,0)
@@ -59,9 +72,6 @@ class SchedulePDF(FPDF):
                     self.cell(35, 7, day, 1, 0, 'C', 1)
                 self.ln()
             else:
-                if self.get_y() > 260:
-                    self.add_page()
-
                 self.set_font('Courier', '', 8)
                 hour = item['hour']
                 self.cell(15, 6, str(hour), 1,0, 'C')
@@ -86,12 +96,37 @@ def generate_pdf_report(
     plot_image_path: str,
     extra_image_path: str = None,
     output_path: str = None,
-    algorithm_instance = None
+    algorithm_instance = None,
+    input_basename: str = "default"
 ) -> str:
     pdf = SchedulePDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     
+    pdf.chapter_title('Data Summary')
+
+    pdf.set_font('Arial', 'B', 11)
+    pdf.cell(0, 8, f'Courses ({len(initial_state.courses)}):', 0, 1)
+    pdf.set_font('Courier', '', 8)
+    course_data = ', '.join([c.code for c in initial_state.courses])
+    pdf.multi_cell(0, 5, course_data)
+    pdf.ln(2)
+
+    pdf.set_font('Arial', 'B', 11)
+    pdf.cell(0, 8, f'Rooms ({len(initial_state.rooms)}):', 0, 1)
+    pdf.set_font('Courier', '', 8)
+    room_data = ', '.join([r.code for r in initial_state.rooms])
+    pdf.multi_cell(0, 5, room_data)
+    pdf.ln(2)
+
+    pdf.set_font('Arial', 'B', 11)
+    pdf.cell(0, 8, f'Students ({len(initial_state.students)}):', 0, 1)
+    pdf.set_font('Courier', '', 8)
+    student_data = ', '.join([s.NIM for s in initial_state.students])
+    pdf.multi_cell(0, 5, student_data)
+
+    pdf.ln(5)
+
     pdf.chapter_title('Algorithm Information')
     pdf.add_info_box('Algorithm', algorithm_name)
     pdf.add_info_box('Total Iterations', str(iterations))
@@ -108,8 +143,8 @@ def generate_pdf_report(
                 pdf.add_info_box('Iterations per Restart', f'{algorithm_instance.iteration_per_restart}')
         
         if hasattr(algorithm_instance, 'initial_temp'):
-            pdf.add_info_box('Initial Temperature', str(algorithm_instance.initial_temp))
-            pdf.add_info_box('Cooling Rate', str(algorithm_instance.cooling_rate))
+            pdf.add_info_box('Initial Temperature (auto)', f'{algorithm_instance.initial_temp:.4f}')
+            pdf.add_info_box('Beta (adaptive cooling)', f'{algorithm_instance.beta:.6f}')
             pdf.add_info_box('Stuck at Local Optima', f'{algorithm_instance.stuck_count} times')
         
         if hasattr(algorithm_instance, 'population_size'):
@@ -160,9 +195,10 @@ def generate_pdf_report(
     
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     safe_algo_name = algorithm_name.replace(' ', '_').lower()
-    output_path = f'output/report/{safe_algo_name}_report_{timestamp}.pdf'
-    
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    output_dir = f'output/report/{input_basename}'
+    output_path = f'{output_dir}/{safe_algo_name}_report_{timestamp}.pdf'
+
+    os.makedirs(output_dir, exist_ok=True)
     
     pdf.output(output_path)
     
