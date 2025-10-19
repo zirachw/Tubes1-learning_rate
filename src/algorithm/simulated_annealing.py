@@ -3,6 +3,7 @@ from src.core.state import State
 import matplotlib.pyplot as plt
 import math
 import random
+from tqdm import tqdm
 
 class SimulatedAnnealing(LocalSearch):
     def __init__(self, state: State, input_basename: str = "default", max_iteration: int = 1000):
@@ -55,7 +56,7 @@ class SimulatedAnnealing(LocalSearch):
 
         temperature = self.initial_temp
 
-        for _ in range(self.max_iteration):
+        for _ in tqdm(range(self.max_iteration), desc="Iteration"):
             current_value = self.state.calculate_objective()
             self.objective_history.append(current_value)
 

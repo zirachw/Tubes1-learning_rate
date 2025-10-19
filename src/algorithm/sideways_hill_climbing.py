@@ -1,5 +1,6 @@
 from .local_search import LocalSearch
 from src.core.state import State
+from tqdm import tqdm
 
 class SidewaysHillClimbing(LocalSearch):
     def __init__(self, state: State, input_basename: str = "default", max_sideways: int = 10):
@@ -19,8 +20,9 @@ class SidewaysHillClimbing(LocalSearch):
                 self.end_timer()
                 return self.state
 
+            print(f"Iteration: {self.iteration + 1}")
             successors_dict = {}
-            for operation in self.state.successors:
+            for operation in tqdm(self.state.successors, desc="Successor"):
                 neighbor = self.state.copy()
                 neighbor.execute_operation(operation)
                 successors_dict[operation] = neighbor.calculate_objective()
@@ -37,6 +39,7 @@ class SidewaysHillClimbing(LocalSearch):
 
             if best_value == current_value:
                 self.sideways_count += 1
+                print(f"\nSideways move {self.sideways_count}/{self.max_sideways}")
 
             self.state.execute_operation(best_operation)
 

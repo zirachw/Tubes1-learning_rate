@@ -4,6 +4,7 @@ from src.core.entity import *
 import matplotlib.pyplot as plt
 import random
 from typing import List, Tuple
+from tqdm import tqdm
 
 class GeneticAlgorithm(LocalSearch):
     def __init__(self, state: State, input_basename: str = "default", population_size: int = 4, max_iteration: int = 100):
@@ -110,7 +111,7 @@ class GeneticAlgorithm(LocalSearch):
         best_individual = None
         best_fitness = 0.0
 
-        for generation in range(self.max_iteration):
+        for generation in tqdm(range(self.max_iteration), desc="Iteration"):
             fitnesses = [self._fitness(ind) for ind in population]
 
             max_fitness = max(fitnesses)

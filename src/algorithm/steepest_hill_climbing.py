@@ -1,5 +1,6 @@
 from .local_search import LocalSearch
 from src.core.state import State
+from tqdm import tqdm
 
 class SteepestHillClimbing(LocalSearch):
     def __init__(self, state: State, input_basename: str = "default"):
@@ -17,8 +18,9 @@ class SteepestHillClimbing(LocalSearch):
                 self.end_timer()
                 return self.state
 
+            print(f"Iteration: {self.iteration + 1}")
             successors_dict = {}
-            for operation in self.state.successors:
+            for operation in tqdm(self.state.successors, desc="Successor"):
                 neighbor = self.state.copy()
                 neighbor.execute_operation(operation)
                 successors_dict[operation] = neighbor.calculate_objective()
