@@ -284,7 +284,7 @@ class State:
                 'room': room
             })
             
-            for hour in range(self.MIN_HOUR, self.MAX_HOUR + 1):
+            for hour in range(self.MIN_HOUR, self.MAX_HOUR):
                 row = {'hour': hour}
                 for day_idx, day_name in enumerate(self.DAYS):
                     courses = self.schedule[room][day_idx][hour]
