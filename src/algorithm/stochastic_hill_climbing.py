@@ -2,8 +2,8 @@ from .local_search import LocalSearch
 from src.core.state import State
 
 class StochasticHillClimbing(LocalSearch):
-    def __init__(self, state: State, max_iteration: int):
-        super().__init__(state)
+    def __init__(self, state: State, input_basename: str = "default", max_iteration: int = 1000):
+        super().__init__(state, input_basename)
         self.max_iteration = max_iteration
 
     def search(self) -> State:

@@ -6,8 +6,8 @@ import random
 from typing import List, Tuple
 
 class GeneticAlgorithm(LocalSearch):
-    def __init__(self, state: State, population_size: int = 4, max_iteration: int = 100):
-        super().__init__(state)
+    def __init__(self, state: State, input_basename: str = "default", population_size: int = 4, max_iteration: int = 100):
+        super().__init__(state, input_basename)
         self.population_size = population_size
         self.max_iteration = max_iteration
 
@@ -165,10 +165,11 @@ class GeneticAlgorithm(LocalSearch):
             plt.tight_layout()
 
             import os
-            os.makedirs("output/plot", exist_ok=True)
-            
+            output_dir = f"output/plot/{self.input_basename}"
+            os.makedirs(output_dir, exist_ok=True)
+
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"output/plot/geneticalgorithm_fitness_{timestamp}.png"
+            filename = f"{output_dir}/geneticalgorithm_fitness_{timestamp}.png"
             plt.savefig(filename)
             print(f"Saved: {filename}")
             plt.close()

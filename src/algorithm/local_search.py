@@ -5,14 +5,10 @@ import time
 from typing import List
 
 class LocalSearch(ABC):
-    def __init__(self, state: State):
+    def __init__(self, state: State, input_basename: str = "default"):
         self.state = state
+        self.input_basename = input_basename
         self.iteration = 0
-
-        try:
-            self.state.initial_state()
-        except:
-            pass
 
         self.initial_state: State = self.state.copy()
         self.final_state: State = None
@@ -48,10 +44,11 @@ class LocalSearch(ABC):
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
 
-        os.makedirs("output/plot", exist_ok=True)
-        
+        output_dir = f"output/plot/{self.input_basename}"
+        os.makedirs(output_dir, exist_ok=True)
+
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"output/plot/{self.__class__.__name__.lower()}_objective_{timestamp}.png"
+        filename = f"{output_dir}/{self.__class__.__name__.lower()}_objective_{timestamp}.png"
         plt.savefig(filename)
         print(f"Saved: {filename}")
         plt.close()

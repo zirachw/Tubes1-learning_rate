@@ -2,8 +2,8 @@ from .local_search import LocalSearch
 from src.core.state import State
 
 class SteepestHillClimbing(LocalSearch):
-    def __init__(self, state: State):
-        super().__init__(state)
+    def __init__(self, state: State, input_basename: str = "default"):
+        super().__init__(state, input_basename)
 
     def search(self) -> State:
         self.start_timer()

@@ -2,8 +2,8 @@ from .local_search import LocalSearch
 from src.core.state import State
 
 class SidewaysHillClimbing(LocalSearch):
-    def __init__(self, state: State, max_sideways: int = 10):
-        super().__init__(state)
+    def __init__(self, state: State, input_basename: str = "default", max_sideways: int = 10):
+        super().__init__(state, input_basename)
         self.max_sideways = max_sideways
         self.sideways_count = 0
 

@@ -2,8 +2,8 @@ from .local_search import LocalSearch
 from src.core.state import State
 
 class RandomRestartHillClimbing(LocalSearch):
-    def __init__(self, state: State, max_restart: int):
-        super().__init__(state)
+    def __init__(self, state: State, input_basename: str = "default", max_restart: int = 5):
+        super().__init__(state, input_basename)
         self.max_restart = max_restart
         self.iteration_per_restart = []
 
