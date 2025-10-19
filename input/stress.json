@@ -1,0 +1,140 @@
+{
+  "kelas_mata_kuliah": [
+    {
+      "kode": "IF3071_K01",
+      "jumlah_mahasiswa": 60,
+      "sks": 3
+    },
+    {
+      "kode": "IF3071_K02",
+      "jumlah_mahasiswa": 55,
+      "sks": 3
+    },
+    {
+      "kode": "IF3130_K01",
+      "jumlah_mahasiswa": 45,
+      "sks": 2
+    },
+    {
+      "kode": "IF3130_K02",
+      "jumlah_mahasiswa": 40,
+      "sks": 2
+    },
+    {
+      "kode": "IF3110_K01",
+      "jumlah_mahasiswa": 70,
+      "sks": 3
+    },
+    {
+      "kode": "IF3110_K02",
+      "jumlah_mahasiswa": 65,
+      "sks": 3
+    },
+    {
+      "kode": "IF3140_K01",
+      "jumlah_mahasiswa": 55,
+      "sks": 2
+    },
+    {
+      "kode": "IF3140_K02",
+      "jumlah_mahasiswa": 50,
+      "sks": 2
+    },
+    {
+      "kode": "IF3170_K01",
+      "jumlah_mahasiswa": 48,
+      "sks": 3
+    },
+    {
+      "kode": "IF3170_K02",
+      "jumlah_mahasiswa": 42,
+      "sks": 3
+    },
+    {
+      "kode": "IF2110_K01",
+      "jumlah_mahasiswa": 80,
+      "sks": 4
+    },
+    {
+      "kode": "IF2210_K01",
+      "jumlah_mahasiswa": 60,
+      "sks": 3
+    }
+  ],
+
+  "ruangan": [
+    {
+      "kode": "7609",
+      "kuota": 60
+    },
+    {
+      "kode": "7606",
+      "kuota": 80
+    },
+    {
+      "kode": "7610",
+      "kuota": 90
+    },
+    {
+      "kode": "multimedia",
+      "kuota": 40
+    },
+    {
+      "kode": "lab_komputer",
+      "kuota": 50
+    }
+  ],
+
+  "mahasiswa": [
+    {
+      "nim": "13523601",
+      "daftar_mk": ["IF3071_K01", "IF3130_K01", "IF3170_K01"],
+      "prioritas": [1, 2, 3]
+    },
+    {
+      "nim": "13523602",
+      "daftar_mk": ["IF3071_K02", "IF3130_K02", "IF3140_K01"],
+      "prioritas": [1, 2, 3]
+    },
+    {
+      "nim": "13523603",
+      "daftar_mk": ["IF3110_K01", "IF3130_K01"],
+      "prioritas": [1, 2]
+    },
+    {
+      "nim": "13523604",
+      "daftar_mk": ["IF3110_K02", "IF3140_K02", "IF3170_K02"],
+      "prioritas": [1, 2, 3]
+    },
+    {
+      "nim": "13523605",
+      "daftar_mk": ["IF3140_K01", "IF3071_K01"],
+      "prioritas": [1, 2]
+    },
+    {
+      "nim": "13523606",
+      "daftar_mk": ["IF3110_K02", "IF3170_K01"],
+      "prioritas": [1, 2]
+    },
+    {
+      "nim": "13522601",
+      "daftar_mk": ["IF2110_K01", "IF2210_K01"],
+      "prioritas": [1, 2]
+    },
+    {
+      "nim": "13522602",
+      "daftar_mk": ["IF2110_K01", "IF2210_K01"],
+      "prioritas": [1, 2]
+    },
+    {
+      "nim": "13523607",
+      "daftar_mk": ["IF3071_K02", "IF3110_K01", "IF3130_K02"],
+      "prioritas": [1, 2, 3]
+    },
+    {
+      "nim": "13523608",
+      "daftar_mk": ["IF3140_K02", "IF3170_K02"],
+      "prioritas": [1, 2]
+    }
+  ]
+}
