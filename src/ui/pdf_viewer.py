@@ -9,7 +9,7 @@ from PyQt6.QtPdfWidgets import QPdfView
 class PdfViewerDialog(QDialog):
     def __init__(self, pdf_path, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("CV Viewer")
+        self.setWindowTitle("Report Viewer")
         self.setMinimumSize(800, 600)
         layout = QVBoxLayout()
         header_layout = QHBoxLayout()

@@ -17,25 +17,56 @@ class UIHandlers:
                 child.widget().deleteLater()
 
     def clear_report_cards(self):
+        from PyQt6.QtCore import QCoreApplication
+
         while self.parent.report_cards_layout.count():
             child = self.parent.report_cards_layout.takeAt(0)
             if child.widget():
-                child.widget().deleteLater()
+                widget = child.widget()
+                widget.setParent(None)
+                widget.deleteLater()
+
+        QCoreApplication.processEvents()
+
+    def show_no_reports_message(self):
+        from PyQt6.QtWidgets import QLabel
+        from PyQt6.QtCore import Qt
+
+        message = QLabel("No reports generated yet.\nRun an algorithm to generate reports.")
+        message.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        message.setStyleSheet("""
+            QLabel {
+                color: #888;
+                font-size: 14px;
+                padding: 40px;
+            }
+        """)
+        self.parent.report_cards_layout.addWidget(message, 0, 1)
 
     def load_reports(self):
         self.clear_report_cards()
-        
+
         report_dir = "output/report"
 
         if not os.path.exists(report_dir):
+            self.show_no_reports_message()
             return
 
-        pdf_files = [pdf for pdf in os.listdir(report_dir) if pdf.endswith(".pdf")]
-        # Sort by modification time (newest first)
-        pdf_files.sort(key=lambda x: os.path.getmtime(os.path.join(report_dir, x)), reverse=True)
+        pdf_files = []
+        for root, dirs, files in os.walk(report_dir):
+            for file in files:
+                if file.endswith(".pdf"):
+                    pdf_path = os.path.join(root, file)
+                    pdf_files.append(pdf_path)
 
-        for pdf_file in pdf_files:
-            pdf_path = os.path.join(report_dir, pdf_file)
+        if not pdf_files:
+            self.show_no_reports_message()
+            return
+
+        # sort (newest first)
+        pdf_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+
+        for pdf_path in pdf_files:
             card = self.create_report_card(pdf_path)
 
             row = self.parent.report_cards_layout.count() // 3
@@ -44,6 +75,8 @@ class UIHandlers:
 
     def create_report_card(self, pdf_path):
         filename = os.path.basename(pdf_path).replace('.pdf', '')
+
+        parent_folder = os.path.basename(os.path.dirname(pdf_path))
 
         parts = filename.split('_report_')
         if len(parts) == 2:
@@ -67,51 +100,53 @@ class UIHandlers:
 
         card.setFixedWidth(300)
         card.setStyleSheet("""
-            QFrame {                
+            QFrame {
                 background-color: #ffffff;
                 padding: 8px;
                 border-radius: 8px;
             }
             QFrame:hover {
-                background-color: #f8fafc;                
-                border-color: #3b82f6;
+                background-color: #f8fafc;
+                border-color: #16a34a;
             }
         """)
         
         card_layout = QVBoxLayout()
 
         card_layout.setSpacing(8)  
-        card_layout.setContentsMargins(8, 8, 8, 8)  # Add margins
+        card_layout.setContentsMargins(8, 8, 8, 8)
         
         algo_label = QLabel(algo_name)
         algo_label.setStyleSheet("""
             font-weight: 700;
             font-size: 16px;
-            color: #1e40af;
+            color: #15803d;
             margin-bottom: 2px;
         """)
-        
-        timestamp_label = QLabel(time_format)
-        timestamp_label.setStyleSheet("""
+
+        input_time_label = QLabel(f"{parent_folder}, {time_format}")
+        input_time_label.setStyleSheet("""
         font-weight: 400;
         font-size: 12px;
+        color: #666;
         """)
-        
-        path_label = QLabel(f"{os.path.basename(pdf_path)}")
-        path_label.setStyleSheet("""
+
+        report_label = QLabel(f"{os.path.basename(pdf_path)}")
+        report_label.setStyleSheet("""
         font-weight: 400;
-        font-size: 12px;
+        font-size: 11px;
+        color: #888;
         """)
 
         card_layout.addWidget(algo_label)
-        card_layout.addWidget(timestamp_label)
-        card_layout.addWidget(path_label)
+        card_layout.addWidget(input_time_label)
+        card_layout.addWidget(report_label)
 
         btn_layout = QHBoxLayout()
         view_btn = QPushButton("View Report")
         view_btn.setStyleSheet("""
             QPushButton {
-                background: #3b82f6;
+                background: #16a34a;
                 color: white;
                 border: none;
                 padding: 6px 14px;
@@ -121,7 +156,7 @@ class UIHandlers:
                 margin-left: 4px;
             }
             QPushButton:hover {
-                background: #2563eb;
+                background: #15803d;
             }
         """)
         view_btn.clicked.connect(lambda: self.open_pdf_dialog(pdf_path))
@@ -156,7 +191,7 @@ class UIHandlers:
             dialog = PdfViewerDialog(pdf_path, self.parent)
             dialog.show()
         except Exception as e:
-            msg = QMessageBox(self.parent)  # Fixed: use self.parent
+            msg = QMessageBox(self.parent)
             msg.setIcon(QMessageBox.Icon.Warning)
             msg.setWindowTitle("Failed")
             msg.setText(f"Failed to open PDF:\n{str(e)}")
@@ -165,13 +200,12 @@ class UIHandlers:
     
     def open_pdf_viewer(self, pdf_path):
         try:
-            # Convert to absolute path
             abs_path = os.path.abspath(pdf_path)
             if not os.path.exists(abs_path):
                 raise FileNotFoundError(f"File not found: {abs_path}")
-            os.startfile(abs_path)  # Only on Windows
+            os.startfile(abs_path)  # only on Windows
         except Exception as e:
-            msg = QMessageBox(self.parent)  # Fixed: use self.parent
+            msg = QMessageBox(self.parent)
             msg.setIcon(QMessageBox.Icon.Warning)
             msg.setWindowTitle("Failed to Open PDF")
             msg.setText(f"Failed to open PDF:\n{str(e)}")

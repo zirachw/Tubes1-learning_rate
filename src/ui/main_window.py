@@ -1,3 +1,5 @@
+import os
+
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QComboBox, QPushButton,
     QVBoxLayout, QMessageBox, QHBoxLayout, QGridLayout, QScrollArea
@@ -58,7 +60,7 @@ class MainWindow(QWidget):
         title.setStyleSheet("""
             font-size: 28px; 
             font-weight: 700; 
-            color: #1e40af;
+            color: #15803d;
             margin: 8px 0;
             padding: 8px;
             letter-spacing: -0.5px;
@@ -106,7 +108,7 @@ class MainWindow(QWidget):
         algorithm_label.setStyleSheet("""
             font-size: 15px;
             font-weight: 600;
-            color: #1e40af;
+            color: #15803d;
             margin-bottom: 6px;
         """)
         self.algorithm_combo_box = QComboBox()
@@ -124,10 +126,10 @@ class MainWindow(QWidget):
                 min-height: 20px;
             }
             QComboBox:hover {
-                border-color: #3b82f6;
+                border-color: #16a34a;
             }
             QComboBox:focus {
-                border-color: #2563eb;
+                border-color: #15803d;
                 outline: none;
             }
             QComboBox::drop-down {
@@ -147,7 +149,7 @@ class MainWindow(QWidget):
                 border: 2px solid #e5e7eb;
                 border-radius: 8px;
                 padding: 4px;
-                selection-background-color: #3b82f6;
+                selection-background-color: #16a34a;
                 selection-color: #ffffff;
             }
         """)
@@ -159,7 +161,7 @@ class MainWindow(QWidget):
         algo_label.setStyleSheet("""
             font-size: 15px;
             font-weight: 600;
-            color: #1e40af;
+            color: #15803d;
             margin: 10px 0 5px 0;
         """)
         self.params_layout = QVBoxLayout()
@@ -177,7 +179,7 @@ class MainWindow(QWidget):
         self.search_btn.clicked.connect(self.run_algorithm)
         self.search_btn.setStyleSheet("""
             QPushButton {
-                background: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #3b82f6, stop:1 #5b95f5);
+                background: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #16a34a, stop:1 #22c55e);
                 color: white;
                 border: none;
                 padding: 12px 15px;
@@ -187,10 +189,10 @@ class MainWindow(QWidget):
                 margin: 8px 0;
             }
             QPushButton:hover {
-                background: #2563eb;
+                background: #15803d;
             }
             QPushButton:pressed {
-                background: #1e40af;
+                background: #15803d;
             }            QPushButton:disabled {
                 background: #9ca3af;
                 color: #ffffff;
@@ -204,7 +206,7 @@ class MainWindow(QWidget):
         report_title.setStyleSheet("""
             font-size: 24px; 
             font-weight: 500; 
-            color: #1e40af;
+            color: #15803d;
             margin: 8px 0;
             padding: 8px;
             letter-spacing: -0.5px;
@@ -244,10 +246,10 @@ class MainWindow(QWidget):
                 border-radius: 5px;
             }
             QScrollBar::handle:vertical {
-                background: #3b82f6;
+                background: #16a34a;
                 border-radius: 5px;
             }            QScrollBar::handle:vertical:hover {
-                background: #2563eb;
+                background: #15803d;
             }
         """)
 
@@ -267,10 +269,10 @@ class MainWindow(QWidget):
             background-color: #ffffff;
             }
             QLineEdit:hover {
-                border-color: #3b82f6;
+                border-color: #16a34a;
             }
             QLineEdit:focus {
-                border-color: #2563eb;
+                border-color: #15803d;
                 outline: none;
             }
         """
@@ -332,23 +334,7 @@ class MainWindow(QWidget):
         # Simulated Annealing
         self.simulated_annealing_params = QWidget()
         simulated_annealing_layout = QVBoxLayout()
-        
-        initial_temp_label = QLabel("Initial Temperature:")
-        initial_temp_label.setStyleSheet(label_style)
-        self.initial_temp_input = QLineEdit()
-        self.initial_temp_input.setPlaceholderText("Enter number (e.g., 1000)")
-        self.initial_temp_input.setText("1000")
-        initial_temp_validator = QIntValidator(1, 100000, self)
-        self.initial_temp_input.setValidator(initial_temp_validator)
-        self.initial_temp_input.setStyleSheet(input_style)
-        
-        cooling_rate_label = QLabel("Cooling Rate:")
-        cooling_rate_label.setStyleSheet(label_style)
-        self.cooling_rate_input = QLineEdit()
-        self.cooling_rate_input.setPlaceholderText("Enter number (e.g., 0.95)")
-        self.cooling_rate_input.setText("0.95")
-        self.cooling_rate_input.setStyleSheet(input_style)
-        
+
         sa_max_iter_label = QLabel("Max Iterations:")
         sa_max_iter_label.setStyleSheet(label_style)
         self.sa_max_iteration_input = QLineEdit()
@@ -357,13 +343,13 @@ class MainWindow(QWidget):
         sa_max_iter_validator = QIntValidator(1, 10000, self)
         self.sa_max_iteration_input.setValidator(sa_max_iter_validator)
         self.sa_max_iteration_input.setStyleSheet(input_style)
-        
-        simulated_annealing_layout.addWidget(initial_temp_label)
-        simulated_annealing_layout.addWidget(self.initial_temp_input)
-        simulated_annealing_layout.addWidget(cooling_rate_label)
-        simulated_annealing_layout.addWidget(self.cooling_rate_input)
+
+        sa_note_label = QLabel("Note: Initial temperature and cooling rate are auto-calculated")
+        sa_note_label.setStyleSheet(label_style + "font-style: italic; color: #666;")
+
         simulated_annealing_layout.addWidget(sa_max_iter_label)
         simulated_annealing_layout.addWidget(self.sa_max_iteration_input)
+        simulated_annealing_layout.addWidget(sa_note_label)
         self.simulated_annealing_params.setLayout(simulated_annealing_layout)
         self.simulated_annealing_params.hide()
 
@@ -421,7 +407,7 @@ class MainWindow(QWidget):
                 font-size: 13px;
             }
             QPushButton {
-                background-color: #3b82f6;
+                background-color: #16a34a;
                 color: white;
                 border: none;
                 padding: 6px 16px;
@@ -430,7 +416,7 @@ class MainWindow(QWidget):
                 min-width: 70px;
             }
             QPushButton:hover {
-                background-color: #2563eb;
+                background-color: #15803d;
             }
         """
     
@@ -475,45 +461,44 @@ class MainWindow(QWidget):
                 msg.exec()
                 return
             filename = filename.replace("Selected File: ", "")
-            
+
+            input_basename = os.path.splitext(os.path.basename(filename))[0]
+            self.input_basename = input_basename
+
             parser = Parse(filename)
             data = parser.loadJson()
             courses, rooms, students = parser.parseAll(data)
-            
+
             state = State(courses, rooms, students)
             state.initial_state()
-            self.initial_state = state.copy()
             self.initial_objective = state.calculate_objective()
+            self.initial_state = state.copy()
 
             selected_algo = self.algorithm_combo_box.currentText()
-            
+
             if selected_algo == "Steepest Ascent Hill Climb":
-                algo = SteepestHillClimbing(state)
-            
+                algo = SteepestHillClimbing(state, input_basename)
+
             elif selected_algo == "Stochastic Hill Climb":
                 max_iter = int(self.max_iteration_input.text())
-                algo = StochasticHillClimbing(state, max_iteration=max_iter)
-            
+                algo = StochasticHillClimbing(state, input_basename, max_iteration=max_iter)
+
             elif selected_algo == "Sideways Hill Climb":
                 max_sideways = int(self.max_sideways_input.text())
-                algo = SidewaysHillClimbing(state, max_sideways=max_sideways)
-            
+                algo = SidewaysHillClimbing(state, input_basename, max_sideways=max_sideways)
+
             elif selected_algo == "Random Restart Hill Climb":
                 max_restart = int(self.max_restart_input.text())
-                algo = RandomRestartHillClimbing(state, max_restart=max_restart)
-            
+                algo = RandomRestartHillClimbing(state, input_basename, max_restart=max_restart)
+
             elif selected_algo == "Simulated Annealing":
-                initial_temp = int(self.initial_temp_input.text())
-                cooling_rate = float(self.cooling_rate_input.text())
                 max_iter = int(self.sa_max_iteration_input.text())
-                algo = SimulatedAnnealing(state, initial_temp=initial_temp, 
-                                         cooling_rate=cooling_rate, 
-                                         max_iteration=max_iter)
-            
+                algo = SimulatedAnnealing(state, input_basename, max_iteration=max_iter)
+
             elif selected_algo == "Genetic Algorithm":
                 pop_size = int(self.population_size_input.text())
                 max_iter = int(self.ga_max_iteration_input.text())
-                algo = GeneticAlgorithm(state, population_size=pop_size, 
+                algo = GeneticAlgorithm(state, input_basename, population_size=pop_size,
                                        max_iteration=max_iter)
             
             self.current_algorithm = selected_algo
@@ -564,7 +549,8 @@ class MainWindow(QWidget):
                 iterations=algo.iteration,
                 plot_image_path=plot_path,
                 extra_image_path=extra_image_path,
-                algorithm_instance=algo
+                algorithm_instance=algo,
+                input_basename=self.input_basename
             )
 
             self.ui_handlers.load_reports()
