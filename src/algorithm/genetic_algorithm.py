@@ -180,7 +180,13 @@ class GeneticAlgorithm(LocalSearch):
         return objective_plot
 
     def print_summary(self):
-        super().print_summary()
-
+        
+        print(f"\n{'='*80}")
+        print(f"{self.__class__.__name__} - Summary")
+        print(f"{'='*80}")
+        print(f"Final Objective: {self.final_state.calculate_objective() if self.final_state else 'N/A':.2f}")
+        print(f"Total Iterations: {self.iteration}")
+        print(f"Duration: {self.duration:.4f} seconds")
         print(f"Population Size: {self.population_size}")
-        print(f"Max Iterations: {self.max_iteration}\n")
+        print(f"Max Iterations: {self.max_iteration}")
+        print(f"{'='*80}\n")

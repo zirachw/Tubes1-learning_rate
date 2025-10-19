@@ -152,14 +152,19 @@ def generate_pdf_report(
             pdf.add_info_box('Max Generations', str(algorithm_instance.max_iteration))
     
     pdf.ln(5)
-    
+
     pdf.chapter_title('Objective Function Results')
-    pdf.add_info_box('Initial Objective Value', f'{initial_objective:.2f}')
+
+    if initial_objective is not None:
+        pdf.add_info_box('Initial Objective Value', f'{initial_objective:.2f}')
+
     pdf.add_info_box('Final Objective Value', f'{final_objective:.2f}')
-    
-    improvement = initial_objective - final_objective
-    improvement_pct = (improvement / initial_objective * 100) if initial_objective > 0 else 0
-    pdf.add_info_box('Improvement', f'{improvement:.2f} ({improvement_pct:.2f}%)')
+
+    if initial_objective is not None:
+        improvement = initial_objective - final_objective
+        improvement_pct = (improvement / initial_objective * 100) if initial_objective > 0 else 0
+        pdf.add_info_box('Improvement', f'{improvement:.2f} ({improvement_pct:.2f}%)')
+
     pdf.ln(5)
     
     pdf.add_page()

@@ -538,12 +538,14 @@ class MainWindow(QWidget):
             extra_image_path = None
             if hasattr(algo, 'extra_plot_filename'):
                 extra_image_path = algo.extra_plot_filename
-            
+
+            initial_obj = None if "Genetic" in self.current_algorithm else self.initial_objective
+
             pdf_path = generate_pdf_report(
                 algorithm_name=self.current_algorithm,
                 initial_state=self.initial_state,
                 final_state=final_state,
-                initial_objective=self.initial_objective,
+                initial_objective=initial_obj,
                 final_objective=final_objective,
                 duration=algo.duration,
                 iterations=algo.iteration,
