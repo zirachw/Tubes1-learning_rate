@@ -15,7 +15,7 @@ class SimulatedAnnealing(LocalSearch):
         self.stuck_count = 0
 
         self.initial_temp = self._calculate_initial_temperature()
-        self.beta = self._calculate_beta()
+        self.cooling_rate = 0.95  # alpha: geometric cooling rate
 
     def _calculate_initial_temperature(self) -> float:
 
@@ -38,7 +38,7 @@ class SimulatedAnnealing(LocalSearch):
                 deltas.append(delta)
 
         if not deltas:
-            return 1000.0 # fallback
+            return 100.0 # fallback
 
         avg_delta = sum(deltas) / len(deltas)
 
@@ -46,10 +46,6 @@ class SimulatedAnnealing(LocalSearch):
         initial_temp = -avg_delta / math.log(self.target_acceptance)
 
         return max(initial_temp, 1.0)
-
-    def _calculate_beta(self) -> float:
-        beta = 1.0 / (self.max_iteration * self.initial_temp)
-        return beta
 
     def search(self) -> State:
         self.start_timer()
@@ -80,12 +76,12 @@ class SimulatedAnnealing(LocalSearch):
 
                 probability = math.exp(-delta / temperature)
 
-                if probability > 0.5:
+                if random.random() < probability:
                     self.probability_values.append(probability)
                     self.state.execute_operation(operation)
 
-            # adaptive cooling (Lundy-Mees): T(k+1) = T(k) / (1 + beta * T(k))
-            temperature = temperature / (1 + self.beta * temperature)
+            # Geometric/Exponential cooling: T(k+1) = alpha * T(k)
+            temperature = temperature * self.cooling_rate
 
         self.final_state = self.state
         self.end_timer()
@@ -123,6 +119,6 @@ class SimulatedAnnealing(LocalSearch):
     def print_summary(self):
         super().print_summary()
         print(f"Initial Temperature (auto-calculated): {self.initial_temp:.4f}")
-        print(f"Beta (adaptive cooling): {self.beta:.6f}")
+        print(f"Cooling Rate (alpha): {self.cooling_rate}")
         print(f"Target Acceptance Ratio: {self.target_acceptance}")
         print(f"Stuck at Local Optima (ΔE=0): {self.stuck_count} times\n") 

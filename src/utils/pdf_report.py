@@ -144,7 +144,7 @@ def generate_pdf_report(
         
         if hasattr(algorithm_instance, 'initial_temp'):
             pdf.add_info_box('Initial Temperature (auto)', f'{algorithm_instance.initial_temp:.4f}')
-            pdf.add_info_box('Beta (adaptive cooling)', f'{algorithm_instance.beta:.6f}')
+            pdf.add_info_box('Alpha (adaptive cooling)', f'{algorithm_instance.cooling_rate}')
             pdf.add_info_box('Stuck at Local Optima', f'{algorithm_instance.stuck_count} times')
         
         if hasattr(algorithm_instance, 'population_size'):
