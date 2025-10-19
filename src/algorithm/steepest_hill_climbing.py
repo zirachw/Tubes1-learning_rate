@@ -18,7 +18,7 @@ class SteepestHillClimbing(LocalSearch):
                 self.end_timer()
                 return self.state
 
-            print(f"Iteration: {self.iteration + 1}")
+            print(f"\nIteration: {self.iteration + 1}")
             successors_dict = {}
             for operation in tqdm(self.state.successors, desc="Successor"):
                 neighbor = self.state.copy()
