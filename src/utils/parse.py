@@ -42,8 +42,9 @@ class Parse:
         for studentData in studentList:
             nim = studentData['nim']
             courseList = studentData['daftar_mk']
-            studentOut.append(Student(nim, courseList))
-        
+            priorities = studentData['prioritas']
+            studentOut.append(Student(nim, courseList, priorities))
+
         return studentOut
 
     def parseAll(self, data) -> {list[Course], list[Room], list[Student]}:

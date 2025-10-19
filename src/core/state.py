@@ -229,7 +229,7 @@ class State:
                             for course in courses_at_slot:
                                 if course.code in student.courses:
                                     idx = student.courses.index(course.code)
-                                    priority = idx + 1
+                                    priority = student.priorities[idx]
                                     weight = priority_weights.get(priority, 1)
                                     student_penalty += weight
 
@@ -292,7 +292,7 @@ class State:
                         codes = [c.code.split('_')[0] for c in courses]
                         row[day_name] = ','.join(codes)
                     else:
-                        row[day_name] = '-'
+                        row[day_name] = ''
                 table_data.append(row)
         return table_data
 

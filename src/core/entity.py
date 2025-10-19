@@ -15,9 +15,10 @@ class Room:
         self.capacity = capacity
 
 class Student:
-    def __init__(self, NIM: str, courses: list[Course]):
+    def __init__(self, NIM: str, courses: list[Course], priorities: list[int]):
         self.NIM = NIM
         self.courses = courses
+        self.priorities = priorities
 
 class CourseMeeting:
 
