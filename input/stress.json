@@ -61,12 +61,7 @@
       "sks": 3
     }
   ],
-
   "ruangan": [
-    {
-      "kode": "7609",
-      "kuota": 60
-    },
     {
       "kode": "7606",
       "kuota": 80
@@ -76,12 +71,8 @@
       "kuota": 90
     },
     {
-      "kode": "multimedia",
-      "kuota": 40
-    },
-    {
-      "kode": "lab_komputer",
-      "kuota": 50
+      "kode": "7609",
+      "kuota": 60
     }
   ],
 
