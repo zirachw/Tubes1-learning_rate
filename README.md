@@ -71,6 +71,14 @@ Repository ini dibuat untuk memenuhi Tugas Besar 1 Mata Kuliah Intelegensi Artif
 
 ---
 
+### Preview
+
+<p align="center">
+    <img width="100%" src="https://github.com/user-attachments/assets/985ddc7a-54eb-433f-8df4-41b4967be525" />
+</p>
+
+---
+
 ### Installation <a name="install"></a>
 
 > [!NOTE]  
@@ -248,5 +256,6 @@ Repository ini dibuat untuk memenuhi Tugas Besar 1 Mata Kuliah Intelegensi Artif
 [git-url]: https://git-scm.com/
 [python-url]: https://www.python.org/
 [uv-url]: https://docs.astral.sh/uv/getting-started/installation/
+
 
 
