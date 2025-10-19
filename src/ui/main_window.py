@@ -41,15 +41,17 @@ class MainWindow(QWidget):
     def init_ui(self):
         self.setStyleSheet("""
             QWidget {
-                background-color: #ffffff
+                background-color: #f8fafc;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                color: #1e293b;
             }
         """)
 
-        main_layout = QVBoxLayout()
+        main_content_layout = QVBoxLayout()
+        main_content_layout.setSpacing(12)
+        main_content_layout.setContentsMargins(15, 15, 15, 15)
         
         top_panel = QVBoxLayout()
-        main_layout.setSpacing(12)
-        main_layout.setContentsMargins(15, 15, 15, 15)
         
         title = QLabel("Class Scheduler")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -196,7 +198,6 @@ class MainWindow(QWidget):
         """)
         top_panel.addWidget(self.search_btn)
 
-        # Right Panel
         bottom_panel = QVBoxLayout()
         report_title = QLabel("Local Search Report")
         report_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -210,11 +211,29 @@ class MainWindow(QWidget):
         """)
 
         bottom_panel.addWidget(report_title)
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll_area.setStyleSheet("""
+
+        report_content_widget = QWidget()
+        self.report_cards_layout = QGridLayout(report_content_widget)
+        self.report_cards_layout.setSpacing(12)
+        self.report_cards_layout.setContentsMargins(12, 12, 12, 12)
+        
+        bottom_panel.addWidget(report_content_widget)
+        
+        bottom_panel.addStretch(1)
+
+        main_content_layout.addLayout(top_panel)
+        main_content_layout.addLayout(bottom_panel)
+
+        main_content_widget = QWidget()
+        main_content_widget.setLayout(main_content_layout)
+
+        main_scroll_area = QScrollArea()
+        main_scroll_area.setWidgetResizable(True)
+        main_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        main_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        main_scroll_area.setWidget(main_content_widget)
+
+        main_scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
                 background-color: transparent;
@@ -231,27 +250,10 @@ class MainWindow(QWidget):
                 background: #2563eb;
             }
         """)
-        scroll_content = QWidget()
-        self.report_cards_layout = QGridLayout(scroll_content)
-        self.report_cards_layout.setSpacing(12)
-        self.report_cards_layout.setContentsMargins(12, 12, 12, 12)
-        scroll_area.setWidget(scroll_content)
-        bottom_panel.addWidget(scroll_area)
 
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #f8fafc;
-                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-                color: #1e293b;
-            }
-        """)
-        bottom_panel.addStretch(1)
-
-        main_layout.addLayout(top_panel)
-        main_layout.addLayout(bottom_panel)
-
-        
-        self.setLayout(main_layout)
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.addWidget(main_scroll_area)
 
 
     def algorithm_params(self):
@@ -397,69 +399,10 @@ class MainWindow(QWidget):
     def start_search_ui(self):
         self.search_btn.setEnabled(False)
         self.search_btn.setText("🔍 Searching...")
-        self.progress_bar.setVisible(True)
-        self.cancel_btn.setVisible(True)
-        self.match_input.setEnabled(False)
     
     def end_search_ui(self):
         self.search_btn.setEnabled(True)
-        self.search_btn.setText("🔍 Search CVs")
-        self.progress_bar.setVisible(False)
-        self.cancel_btn.setVisible(False)
-
-
-    def on_search_completed(self, cv_results):
-        try:
-            self.end_search_ui()
-            print(f"\n=== SEARCH COMPLETED ===")
-            print(f"Total CV results: {len(cv_results) if cv_results else 0}")
-            if cv_results:
-                print(f"Top result: {cv_results[0]['name']} with {cv_results[0]['total_matches']} matches")
-            else:
-                self.ui_handlers.clear_results_container()
-                
-        except Exception as e:
-            print(f"Error in search completion handler: {e}")
-            self.end_search_ui()
-            QMessageBox.critical(self, "Search Completion Error", 
-                               f"An error occurred while displaying results:\n{str(e)}")
-        finally:
-            self.cleanup_search_worker()
-
-    def on_search_error(self, error_message):
-        try:
-            self.end_search_ui()
-            if not error_message or error_message.strip() == "":
-                error_message = "An unknown error occurred during search"
-            print(f"Search error: {error_message}")
-            QMessageBox.critical(self, "Search Error", f"An error occurred during search:\n{error_message}")
-            self.ui_handlers.clear_results_container()
-            error_label = QLabel(f"Search error: {error_message}")
-            error_label.setStyleSheet("""
-                font-size: 16px;
-                color: #ef4444;
-                font-weight: 500;
-                text-align: center;
-                padding: 40px;
-            """)
-            error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.results_container.addWidget(error_label, 0, 0, 1, 3)
-            
-        except Exception as e:
-            print(f"Error in search error handler: {e}")
-            QMessageBox.critical(self, "Search Error", f"A critical error occurred:\n{str(e)}")
-        finally:
-            self.cleanup_search_worker()
-
-
-    def display_search_results(self, cv_results):
-        return self.ui_handlers.display_search_results(cv_results)
-
-    def open_pdf_viewer(self, pdf_path, candidate_name):
-        return self.ui_handlers.open_pdf_viewer(pdf_path, candidate_name)
-
-    def open_summary_viewer(self, cv_data):
-        return self.ui_handlers.open_summary_viewer(cv_data)
+        self.search_btn.setText("Search")
 
     def open_file_picker(self):
         filename = self.ui_handlers.open_file_picker()
