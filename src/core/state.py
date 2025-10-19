@@ -178,7 +178,7 @@ class State:
                 # Move operations
                 for room in self.rooms:
                     for day in range(5):
-                        for hour in range(self.MIN_HOUR, self.MAX_HOUR + 1):
+                        for hour in range(self.MIN_HOUR, self.MAX_HOUR):
                             if self._is_slot_available(room.code, day, hour, duration):
                                 self.successors.append(('move', i, (room, day, hour), duration))
 
